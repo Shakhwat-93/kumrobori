@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DELIVERY_CHARGE, boriPrices, combos, products, orderOptions } from './data.js'
 import { submitOrder } from './supabase.js'
+import { CmsProvider } from './context/CmsContext.jsx'
+import AdminApp from './admin/AdminApp.jsx'
 
 /* ---------- helpers ---------- */
 const bnDigits = '০১২৩৪৫৬৭৮৯'
@@ -300,7 +302,9 @@ function OrderForm() {
     if (Object.keys(er).length) return
 
     setLoading(true)
+    const orderId = 'KB-' + Date.now().toString(36).toUpperCase()
     const result = await submitOrder({
+      order_id: orderId,
       name: form.name.trim(),
       phone: form.phone.trim(),
       address: form.address.trim(),
@@ -309,7 +313,9 @@ function OrderForm() {
       quantity: qty,
       unit: opt.unit,
       unit_price: opt.price,
+      subtotal: subtotal,
       delivery_charge: delivery,
+      delivery_fee: delivery,
       total_price: total,
       status: 'pending'
     })
@@ -473,7 +479,7 @@ function FloatingFacebook() {
   )
 }
 
-export default function App() {
+function Storefront({ onOpenAdmin }) {
   useReveal()
   return (
     <>
@@ -508,10 +514,91 @@ export default function App() {
             <span>ফেসবুক পেজ ভিজিট করুন</span>
           </a>
         </div>
+        <div style={{ margin: '14px 0 8px' }}>
+          <button
+            type="button"
+            onClick={onOpenAdmin}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'rgba(255,255,255,0.45)',
+              fontSize: '12px',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              transition: 'color .2s, background .2s'
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }}
+            onMouseOut={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; e.currentTarget.style.background = 'none' }}
+            title="অ্যাডমিন প্যানেল (অথবা প্রেস করুন Ctrl+Shift+A)"
+          >
+            ⚙️ অ্যাডমিন প্যানেল
+          </button>
+        </div>
         <small>© {toBn(new Date().getFullYear())} ম্যাঙ্গো গার্ডেন · সর্বস্বত্ব সংরক্ষিত</small>
       </footer>
       <FloatingFacebook />
       <StickyBar />
     </>
   )
+}
+
+export default function App() {
+  const [currentView, setCurrentView] = useState(() => {
+    if (window.location.hash === '#admin' || window.location.pathname.startsWith('/admin')) {
+      return 'admin';
+    }
+    return 'store';
+  });
+
+  useEffect(() => {
+    const handleHash = () => {
+      if (window.location.hash === '#admin' || window.location.pathname.startsWith('/admin')) {
+        setCurrentView('admin');
+      } else {
+        setCurrentView('store');
+      }
+    };
+
+    const handleKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        navigateToAdmin();
+      }
+    };
+
+    window.addEventListener('hashchange', handleHash);
+    window.addEventListener('popstate', handleHash);
+    window.addEventListener('keydown', handleKey);
+    return () => {
+      window.removeEventListener('hashchange', handleHash);
+      window.removeEventListener('popstate', handleHash);
+      window.removeEventListener('keydown', handleKey);
+    };
+  }, []);
+
+  const navigateToAdmin = () => {
+    window.location.hash = 'admin';
+    setCurrentView('admin');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const navigateToStore = () => {
+    window.location.hash = '';
+    setCurrentView('store');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <CmsProvider>
+      {currentView === 'admin' ? (
+        <AdminApp onNavigateStore={navigateToStore} />
+      ) : (
+        <Storefront onOpenAdmin={navigateToAdmin} />
+      )}
+    </CmsProvider>
+  );
 }
