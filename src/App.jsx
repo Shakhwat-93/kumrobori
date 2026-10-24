@@ -1,0 +1,432 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { DELIVERY_CHARGE, boriPrices, combos, products, orderOptions } from './data.js'
+
+/* ---------- helpers ---------- */
+const bnDigits = '০১২৩৪৫৬৭৮৯'
+const toBn = (n) => String(n).replace(/\d/g, (d) => bnDigits[d])
+const taka = (n) => toBn(Number(n).toLocaleString('en-IN'))
+
+function useReveal() {
+  useEffect(() => {
+    const els = document.querySelectorAll('.reveal')
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && (e.target.classList.add('in'), io.unobserve(e.target))),
+      { threshold: 0.15 }
+    )
+    els.forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, [])
+}
+
+function CountUp({ to, duration = 1100 }) {
+  const [val, setVal] = useState(0)
+  const ref = useRef(null)
+  useEffect(() => {
+    const el = ref.current
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return
+      io.disconnect()
+      const start = performance.now()
+      const tick = (t) => {
+        const p = Math.min((t - start) / duration, 1)
+        setVal(Math.round(to * (1 - Math.pow(1 - p, 3))))
+        if (p < 1) requestAnimationFrame(tick)
+      }
+      requestAnimationFrame(tick)
+    })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [to, duration])
+  return <span ref={ref}>{taka(val)}</span>
+}
+
+const scrollToOrder = (id) => {
+  if (id) window.dispatchEvent(new CustomEvent('pick-option', { detail: id }))
+  document.getElementById('order')?.scrollIntoView({ behavior: 'smooth' })
+}
+
+/* ---------- sections ---------- */
+function Header() {
+  return (
+    <header className="header">
+      <a href="#top" className="brand">
+        <span className="brand-dot">ক</span>
+        <span>কুমড়ো বড়ি</span>
+      </a>
+      <button className="btn btn-sm" onClick={() => scrollToOrder()}>অর্ডার করুন</button>
+    </header>
+  )
+}
+
+function Hero() {
+  return (
+    <section className="hero" id="top">
+      <div className="blob blob-1" />
+      <div className="blob blob-2" />
+      <div className="hero-inner">
+        <span className="pill reveal">🌿 ১০০% ঘরে তৈরি · রোদে শুকানো</span>
+        <h1 className="reveal">
+          ঘরোয়া স্বাদের <span className="hl">খাঁটি</span> কুমড়ো বড়ি
+        </h1>
+        <p className="lead reveal">মাসকলাইয়ের ডাল আর কুমড়োয় তৈরি, গ্রামের রোদে শুকানো, ঠিক যেমন মায়ের হাতে হতো।</p>
+
+        <div className="hero-media reveal">
+          <img src="/img/kumro-bori.webp" alt="কুমড়ো বড়ি" className="float" />
+          <div className="price-sticker">
+            <small>মাত্র</small>
+            <strong>৳<CountUp to={650} /></strong>
+            <small>/ কেজি</small>
+          </div>
+          <div className="mini-badge">🚚 সারা দেশে ডেলিভারি</div>
+        </div>
+
+        <div className="hero-cta reveal">
+          <button className="btn btn-lg shine" onClick={() => scrollToOrder('bori-1')}>
+            এখনই অর্ডার করুন →
+          </button>
+          <a href="#combo" className="btn btn-ghost btn-lg">কম্বো অফার দেখুন</a>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Marquee() {
+  const items = ['৭৯৯৳ কম্বোতে ফ্রি ডেলিভারি', '৯৫০৳ স্পেশাল কম্বো', 'ক্যাশ অন ডেলিভারি', 'সারা বাংলাদেশে হোম ডেলিভারি', '১০০% ঘরে তৈরি']
+  const row = [...items, ...items]
+  return (
+    <div className="marquee" aria-hidden="true">
+      <div className="marquee-track">
+        {row.map((t, i) => (
+          <span key={i}>✦ {t}</span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Features() {
+  const f = [
+    { i: '🌞', t: 'রোদে শুকানো', d: 'প্রাকৃতিক রোদে শুকানো' },
+    { i: '🏡', t: 'ঘরে তৈরি', d: 'হাতে বানানো ঘরোয়া বড়ি' },
+    { i: '💵', t: 'ক্যাশ অন ডেলিভারি', d: 'পণ্য হাতে পেয়ে টাকা' },
+    { i: '🚚', t: 'সারা দেশে', d: 'বাংলাদেশের যেকোনো জায়গায়' },
+  ]
+  return (
+    <section className="section">
+      <div className="features">
+        {f.map((x, i) => (
+          <div className="feature reveal" style={{ transitionDelay: `${i * 80}ms` }} key={x.t}>
+            <span className="f-icon">{x.i}</span>
+            <strong>{x.t}</strong>
+            <small>{x.d}</small>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function BoriPricing() {
+  return (
+    <section className="section" id="pricing">
+      <div className="sec-head reveal">
+        <span className="eyebrow">💰 দাম</span>
+        <h2>কুমড়ো বড়ির প্যাক বেছে নিন</h2>
+        <p>হোম ডেলিভারি চার্জ সারা বাংলাদেশে মাত্র <b>৳{toBn(DELIVERY_CHARGE)}</b></p>
+      </div>
+      <div className="price-list">
+        {boriPrices.map((b, i) => (
+          <div className={`price-card reveal ${b.featured ? 'featured' : ''}`} style={{ transitionDelay: `${i * 90}ms` }} key={b.id}>
+            {b.featured && <span className="ribbon">⭐ {b.tag}</span>}
+            <div className="pc-left">
+              <span className="pc-weight">{b.weight}</span>
+              {!b.featured && <span className="pc-tag">{b.tag}</span>}
+            </div>
+            <div className="pc-right">
+              <span className="pc-price">৳{taka(b.price)}</span>
+              <button className={`btn btn-sm ${b.featured ? '' : 'btn-soft'}`} onClick={() => scrollToOrder(b.id)}>
+                অর্ডার
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function Combos() {
+  return (
+    <section className="section combo-sec" id="combo">
+      <div className="sec-head reveal">
+        <span className="eyebrow">🎁 কম্বো অফার</span>
+        <h2>এক প্যাকেজে ৩টি দেশি পণ্য</h2>
+        <p>দুই কম্বোতেই <b>হোম ডেলিভারি সম্পূর্ণ ফ্রি!</b></p>
+      </div>
+      <div className="combo-list">
+        {combos.map((c, i) => (
+          <article className={`combo-card reveal ${c.featured ? 'featured' : ''}`} style={{ transitionDelay: `${i * 120}ms` }} key={c.id}>
+            <div className="combo-img">
+              <img src={c.image} alt={c.title} loading="lazy" />
+              <span className="sale-badge">ফ্রি ডেলিভারি</span>
+              {c.featured && <span className="hot-badge">❤️ স্পেশাল</span>}
+            </div>
+            <div className="combo-body">
+              <h3>{c.title}</h3>
+              <ul>
+                {c.items.map((it) => (
+                  <li key={it}>
+                    <span className="tick">✓</span>
+                    {it}
+                  </li>
+                ))}
+              </ul>
+              <div className="combo-foot">
+                <div>
+                  <small>প্যাকেজ মূল্য</small>
+                  <div className="combo-price">৳<CountUp to={c.price} /></div>
+                </div>
+                <button className="btn shine" onClick={() => scrollToOrder(c.id)}>
+                  কম্বো নিন
+                </button>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function Products() {
+  return (
+    <section className="section" id="products">
+      <div className="sec-head reveal">
+        <span className="eyebrow">🌿 মূল্য তালিকা</span>
+        <h2>আমাদের সব পণ্য</h2>
+      </div>
+      <div className="prod-grid">
+        {products.map((p, i) => (
+          <div className="prod reveal" style={{ transitionDelay: `${(i % 2) * 90}ms` }} key={p.id}>
+            <div className="prod-img">
+              <img src={p.image} alt={p.name} loading="lazy" style={p.pos ? { objectPosition: p.pos } : undefined} />
+            </div>
+            <h4>{p.name}</h4>
+            <div className="prod-price">
+              ৳{taka(p.price)}
+              <small>/{p.unit}</small>
+            </div>
+            {p.min > 1 ? <span className="min">সর্বনিম্ন {toBn(p.min)} {p.unit}</span> : <span className="min ok">যেকোনো পরিমাণ</span>}
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function Story() {
+  return (
+    <section className="section">
+      <div className="story reveal">
+        <img src="/img/maker.webp" alt="রোদে শুকানো কুমড়ো বড়ি" loading="lazy" />
+        <div className="story-text">
+          <span className="eyebrow light">আমাদের গল্প</span>
+          <h3>গ্রামের রোদে, ঘরের যত্নে</h3>
+          <p>বাঁশের মাচায় রোদে শুকানো প্রতিটি বড়ি, যাতে রান্নায় আসে সেই পুরনো দিনের স্বাদ।</p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function OrderForm() {
+  const [sel, setSel] = useState('combo-799')
+  const opt = orderOptions.find((o) => o.id === sel)
+  const [qty, setQty] = useState(opt.min)
+  const [form, setForm] = useState({ name: '', phone: '', address: '' })
+  const [err, setErr] = useState({})
+  const [done, setDone] = useState(false)
+
+  useEffect(() => {
+    const h = (e) => {
+      const o = orderOptions.find((x) => x.id === e.detail)
+      if (o) {
+        setSel(o.id)
+        setQty(o.min)
+      }
+    }
+    window.addEventListener('pick-option', h)
+    return () => window.removeEventListener('pick-option', h)
+  }, [])
+
+  const pick = (o) => {
+    setSel(o.id)
+    setQty(o.min)
+  }
+
+  const subtotal = opt.price * qty
+  const delivery = opt.freeDelivery ? 0 : DELIVERY_CHARGE
+  const total = subtotal + delivery
+
+  const submit = (e) => {
+    e.preventDefault()
+    const er = {}
+    if (form.name.trim().length < 2) er.name = 'আপনার নাম লিখুন'
+    if (!/^01[3-9]\d{8}$/.test(form.phone.replace(/\s|-/g, ''))) er.phone = 'সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন'
+    if (form.address.trim().length < 8) er.address = 'পূর্ণ ঠিকানা লিখুন'
+    setErr(er)
+    if (Object.keys(er).length) return
+    // TODO: এখানে API / Google Sheet / ব্যাকএন্ডে অর্ডার পাঠান
+    setDone(true)
+  }
+
+  return (
+    <section className="section order-sec" id="order">
+      <div className="sec-head reveal">
+        <span className="eyebrow">🛒 অর্ডার</span>
+        <h2>অর্ডার করতে ফর্মটি পূরণ করুন</h2>
+        <p>ক্যাশ অন ডেলিভারি, পণ্য হাতে পেয়ে টাকা দিন</p>
+      </div>
+
+      <form className="order-card reveal" onSubmit={submit} noValidate>
+        <label className="lbl">প্যাকেজ / পণ্য বেছে নিন</label>
+        <div className="opts">
+          {orderOptions.map((o) => (
+            <button type="button" key={o.id} className={`opt ${sel === o.id ? 'active' : ''}`} onClick={() => pick(o)}>
+              <span className="radio" />
+              <span className="opt-text">
+                <b>{o.label}</b>
+                <small className={o.freeDelivery ? 'free' : ''}>{o.sub}</small>
+              </span>
+              <span className="opt-price">
+                ৳{taka(o.price)}
+                {o.unit === 'কেজি' && <small>/কেজি</small>}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <label className="lbl">পরিমাণ ({opt.unit})</label>
+        <div className="stepper">
+          <button type="button" onClick={() => setQty((q) => Math.max(opt.min, q - 1))} disabled={qty <= opt.min} aria-label="কমান">−</button>
+          <span key={qty} className="pop">{toBn(qty)}</span>
+          <button type="button" onClick={() => setQty((q) => q + 1)} aria-label="বাড়ান">+</button>
+        </div>
+
+        <div className="field">
+          <label className="lbl" htmlFor="name">আপনার নাম</label>
+          <input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="যেমন: রহিম উদ্দিন" />
+          {err.name && <span className="err">{err.name}</span>}
+        </div>
+        <div className="field">
+          <label className="lbl" htmlFor="phone">মোবাইল নম্বর</label>
+          <input id="phone" inputMode="numeric" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="01XXXXXXXXX" />
+          {err.phone && <span className="err">{err.phone}</span>}
+        </div>
+        <div className="field">
+          <label className="lbl" htmlFor="address">পূর্ণ ঠিকানা</label>
+          <textarea id="address" rows="3" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="বাসা, রোড, থানা, জেলা" />
+          {err.address && <span className="err">{err.address}</span>}
+        </div>
+
+        <div className="summary">
+          <div><span>সাবটোটাল</span><span>৳{taka(subtotal)}</span></div>
+          <div><span>ডেলিভারি চার্জ</span>{delivery ? <span>৳{taka(delivery)}</span> : <span className="free">ফ্রি 🎉</span>}</div>
+          <div className="total"><span>সর্বমোট</span><span key={total} className="pop">৳{taka(total)}</span></div>
+        </div>
+
+        <button type="submit" className="btn btn-lg btn-block shine">অর্ডার কনফার্ম করুন · ৳{taka(total)}</button>
+      </form>
+
+      {done && (
+        <div className="modal" onClick={() => setDone(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="check">✓</div>
+            <h3>ধন্যবাদ, {form.name}!</h3>
+            <p>আপনার অর্ডারটি পেয়েছি। খুব শীঘ্রই <b>{form.phone}</b> নম্বরে কল করে কনফার্ম করা হবে।</p>
+            <button className="btn btn-block" onClick={() => setDone(false)}>ঠিক আছে</button>
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
+function FAQ() {
+  const qs = [
+    ['ডেলিভারি কত দিনে পাব?', 'অর্ডার কনফার্ম হওয়ার পর কুরিয়ারে পাঠানো হয়। সময় এলাকাভেদে কিছুটা ভিন্ন হতে পারে।'],
+    ['টাকা কীভাবে দেব?', 'ক্যাশ অন ডেলিভারি, পণ্য হাতে পেয়ে ডেলিভারি ম্যানকে টাকা দেবেন।'],
+    ['কম্বোতে ডেলিভারি চার্জ লাগবে?', 'না, দুই কম্বো অফারেই সারা বাংলাদেশে হোম ডেলিভারি সম্পূর্ণ ফ্রি।'],
+    ['ডাল ও আটার সর্বনিম্ন পরিমাণ কত?', 'মাসকলাইয়ের ডাল ও আটা সর্বনিম্ন ২ কেজি, লাল গমের আটা সর্বনিম্ন ৫ কেজি।'],
+  ]
+  const [open, setOpen] = useState(0)
+  return (
+    <section className="section">
+      <div className="sec-head reveal">
+        <span className="eyebrow">❓ প্রশ্ন</span>
+        <h2>সাধারণ জিজ্ঞাসা</h2>
+      </div>
+      <div className="faq">
+        {qs.map(([q, a], i) => (
+          <div className={`faq-item reveal ${open === i ? 'open' : ''}`} key={q}>
+            <button onClick={() => setOpen(open === i ? -1 : i)}>
+              {q}
+              <span className="chev">+</span>
+            </button>
+            <div className="faq-a"><p>{a}</p></div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function StickyBar() {
+  const [show, setShow] = useState(false)
+  useEffect(() => {
+    const onScroll = () => {
+      const order = document.getElementById('order')
+      const r = order?.getBoundingClientRect()
+      const inOrder = r && r.top < window.innerHeight && r.bottom > 0
+      setShow(window.scrollY > 500 && !inOrder)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  return (
+    <div className={`sticky-bar ${show ? 'show' : ''}`}>
+      <div>
+        <small>কম্বো শুরু</small>
+        <b>৳৭৯৯ · ফ্রি ডেলিভারি</b>
+      </div>
+      <button className="btn shine" onClick={() => scrollToOrder()}>অর্ডার করুন</button>
+    </div>
+  )
+}
+
+export default function App() {
+  useReveal()
+  return (
+    <>
+      <Header />
+      <main>
+        <Hero />
+        <Marquee />
+        <Features />
+        <BoriPricing />
+        <Combos />
+        <Products />
+        <Story />
+        <OrderForm />
+        <FAQ />
+      </main>
+      <footer className="footer">
+        <b>কুমড়ো বড়ি</b>
+        <p>ঘরোয়া স্বাদের খাঁটি দেশি পণ্য · সারা বাংলাদেশে হোম ডেলিভারি</p>
+        <small>© {toBn(new Date().getFullYear())} সর্বস্বত্ব সংরক্ষিত</small>
+      </footer>
+      <StickyBar />
+    </>
+  )
+}
