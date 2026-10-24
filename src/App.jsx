@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DELIVERY_CHARGE, boriPrices, combos, products, orderOptions } from './data.js'
+import { submitOrder } from './supabase.js'
 
 /* ---------- helpers ---------- */
 const bnDigits = '০১২৩৪৫৬৭৮৯'
@@ -264,6 +265,8 @@ function OrderForm() {
   const [form, setForm] = useState({ name: '', phone: '', address: '' })
   const [err, setErr] = useState({})
   const [done, setDone] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [orderErr, setOrderErr] = useState('')
 
   useEffect(() => {
     const h = (e) => {
@@ -286,16 +289,37 @@ function OrderForm() {
   const delivery = opt.freeDelivery ? 0 : DELIVERY_CHARGE
   const total = subtotal + delivery
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
+    setOrderErr('')
     const er = {}
     if (form.name.trim().length < 2) er.name = 'আপনার নাম লিখুন'
     if (!/^01[3-9]\d{8}$/.test(form.phone.replace(/\s|-/g, ''))) er.phone = 'সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন'
     if (form.address.trim().length < 8) er.address = 'পূর্ণ ঠিকানা লিখুন'
     setErr(er)
     if (Object.keys(er).length) return
-    // TODO: এখানে API / Google Sheet / ব্যাকএন্ডে অর্ডার পাঠান
-    setDone(true)
+
+    setLoading(true)
+    const result = await submitOrder({
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      address: form.address.trim(),
+      package_id: opt.id,
+      product_name: opt.label,
+      quantity: qty,
+      unit: opt.unit,
+      unit_price: opt.price,
+      delivery_charge: delivery,
+      total_price: total,
+      status: 'pending'
+    })
+    setLoading(false)
+
+    if (result.success) {
+      setDone(true)
+    } else {
+      setOrderErr(result.error || 'অর্ডার করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।')
+    }
   }
 
   return (
@@ -353,16 +377,19 @@ function OrderForm() {
           <div className="total"><span>সর্বমোট</span><span key={total} className="pop">৳{taka(total)}</span></div>
         </div>
 
-        <button type="submit" className="btn btn-lg btn-block shine">অর্ডার কনফার্ম করুন · ৳{taka(total)}</button>
+        {orderErr && <span className="err" style={{ marginBottom: '12px', textAlign: 'center' }}>{orderErr}</span>}
+        <button type="submit" className="btn btn-lg btn-block shine" disabled={loading}>
+          {loading ? 'অর্ডার জমা হচ্ছে...' : `অর্ডার কনফার্ম করুন · ৳${taka(total)}`}
+        </button>
       </form>
 
       {done && (
-        <div className="modal" onClick={() => setDone(false)}>
+        <div className="modal" onClick={() => { setDone(false); setForm({ name: '', phone: '', address: '' }); }}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="check">✓</div>
             <h3>ধন্যবাদ, {form.name}!</h3>
-            <p>আপনার অর্ডারটি পেয়েছি। খুব শীঘ্রই <b>{form.phone}</b> নম্বরে কল করে কনফার্ম করা হবে।</p>
-            <button className="btn btn-block" onClick={() => setDone(false)}>ঠিক আছে</button>
+            <p>আপনার অর্ডারটি সফলভাবে জমা হয়েছে। খুব শীঘ্রই <b>{form.phone}</b> নম্বরে কল করে কনফার্ম করা হবে।</p>
+            <button className="btn btn-block" onClick={() => { setDone(false); setForm({ name: '', phone: '', address: '' }); }}>ঠিক আছে</button>
           </div>
         </div>
       )}
