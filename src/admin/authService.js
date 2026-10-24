@@ -10,21 +10,31 @@ const LOCKOUT_SECONDS = 60;
 const SESSION_TTL_HOURS = 24 * 7; // 7 days
 
 // Configured authorized credentials
-const AUTHORIZED_PASSCODES = [
+export const ADMIN_CREDENTIALS = {
+  email: 'mangogarden54@gmail.com',
+  password: 'Ra@169154'
+};
+
+const AUTHORIZED_PASSWORDS = [
+  'Ra@169154',
   'admin',
-  'admin123',
-  'mosiurm6700@gmail.com',
-  'mosiurm6700'
+  'admin123'
+];
+
+const AUTHORIZED_EMAILS = [
+  'mangogarden54@gmail.com',
+  'admin',
+  'admin@mangogarden.com'
 ];
 
 /**
  * Computes a simple deterministic hash for session token verification
  */
-function createSessionToken(passcode) {
+function createSessionToken(identifier) {
   const timestamp = Date.now();
   const salt = 'mangogarden_secure_salt_2026';
   let hash = 0;
-  const str = `${passcode}_${timestamp}_${salt}`;
+  const str = `${identifier}_${timestamp}_${salt}`;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
     hash = (hash << 5) - hash + char;
@@ -41,6 +51,7 @@ function createSessionToken(passcode) {
  * Checks if active admin session is valid
  */
 export function isAuthenticated() {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return false;
   try {
     const raw = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
@@ -63,6 +74,9 @@ export function isAuthenticated() {
  * Checks brute-force lockout status
  */
 export function getLockoutState() {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return { isLocked: false, remainingSeconds: 0, attempts: 0 };
+  }
   try {
     const raw = localStorage.getItem(ATTEMPTS_KEY);
     if (!raw) return { isLocked: false, remainingSeconds: 0, attempts: 0 };
@@ -90,6 +104,9 @@ export function getLockoutState() {
  * Records a failed login attempt
  */
 export function recordFailedAttempt() {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return { isLocked: false, remainingSeconds: 0, attempts: 1 };
+  }
   try {
     const state = getLockoutState();
     const newAttempts = (state.attempts || 0) + 1;
@@ -118,27 +135,48 @@ export function recordFailedAttempt() {
  * Clears failed attempts upon successful login
  */
 export function clearFailedAttempts() {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return;
   try {
     localStorage.removeItem(ATTEMPTS_KEY);
   } catch {}
 }
 
 /**
- * Attempts to login with passcode
+ * Attempts to login with email and password or standalone passcode
  */
-export function login(inputPasscode, rememberMe = true) {
+export function login(emailOrPasscode, maybePassword, maybeRememberMe) {
   const lockout = getLockoutState();
   if (lockout.isLocked) {
     return {
       success: false,
-      message: `অনেকবার ভুল পাসকোড দেওয়ার কারণে অ্যাডমিন লক হয়েছে। ${lockout.remainingSeconds} সেকেন্ড পর আবার চেষ্টা করুন।`
+      message: `অনেকবার ভুল পাসওয়ার্ড দেওয়ার কারণে অ্যাডমিন লক হয়েছে। ${lockout.remainingSeconds} সেকেন্ড পর আবার চেষ্টা করুন।`
     };
   }
 
-  const clean = String(inputPasscode || '').trim();
-  const isMatch = AUTHORIZED_PASSCODES.some(
-    (code) => code.toLowerCase() === clean.toLowerCase()
-  );
+  let email = '';
+  let password = '';
+  let rememberMe = true;
+
+  if (maybePassword !== undefined && typeof maybePassword === 'string') {
+    email = String(emailOrPasscode || '').trim();
+    password = String(maybePassword || '').trim();
+    rememberMe = maybeRememberMe !== undefined ? Boolean(maybeRememberMe) : true;
+  } else {
+    // Single passcode passed
+    password = String(emailOrPasscode || '').trim();
+    rememberMe = maybePassword !== undefined ? Boolean(maybePassword) : true;
+  }
+
+  // Verification logic
+  let isMatch = false;
+
+  if (email) {
+    const emailMatches = AUTHORIZED_EMAILS.some((e) => e.toLowerCase() === email.toLowerCase());
+    const passMatches = AUTHORIZED_PASSWORDS.includes(password);
+    isMatch = (emailMatches && passMatches) || passMatches;
+  } else {
+    isMatch = AUTHORIZED_PASSWORDS.includes(password) || AUTHORIZED_EMAILS.includes(password);
+  }
 
   if (!isMatch) {
     const afterAttempt = recordFailedAttempt();
@@ -146,24 +184,28 @@ export function login(inputPasscode, rememberMe = true) {
     if (afterAttempt.isLocked) {
       return {
         success: false,
-        message: `ভুল পাসকোড! অতিরিক্ত চেষ্টার কারণে ${LOCKOUT_SECONDS} সেকেন্ডের জন্য লক করা হয়েছে।`
+        message: `ভুল ইমেইল বা পাসওয়ার্ড! অতিরিক্ত চেষ্টার কারণে ${LOCKOUT_SECONDS} সেকেন্ডের জন্য লক করা হয়েছে।`
       };
     }
     return {
       success: false,
-      message: `ভুল পাসকোড! আর মাত্র ${remaining} বার চেষ্টা করতে পারবেন।`
+      message: `ভুল ইমেইল বা পাসওয়ার্ড! আর মাত্র ${remaining} বার চেষ্টা করতে পারবেন।`
     };
   }
 
   // Success
   clearFailedAttempts();
-  const session = createSessionToken(clean);
+  const session = createSessionToken(email || password);
   const json = JSON.stringify(session);
 
-  if (rememberMe) {
-    localStorage.setItem(STORAGE_KEY, json);
-  } else {
-    sessionStorage.setItem(STORAGE_KEY, json);
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    try {
+      if (rememberMe) {
+        localStorage.setItem(STORAGE_KEY, json);
+      } else {
+        sessionStorage.setItem(STORAGE_KEY, json);
+      }
+    } catch {}
   }
 
   return { success: true };
@@ -173,6 +215,7 @@ export function login(inputPasscode, rememberMe = true) {
  * Logs out and clears active admin session
  */
 export function logout() {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return;
   try {
     localStorage.removeItem(STORAGE_KEY);
     sessionStorage.removeItem(STORAGE_KEY);
@@ -180,6 +223,7 @@ export function logout() {
 }
 
 export default {
+  ADMIN_CREDENTIALS,
   isAuthenticated,
   getLockoutState,
   recordFailedAttempt,

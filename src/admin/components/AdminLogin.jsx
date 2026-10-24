@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   AlertCircle,
   KeyRound,
+  Mail,
   Sparkles
 } from 'lucide-react';
 import { login, getLockoutState } from '../authService';
@@ -16,7 +17,8 @@ import './adminLogin.css';
 
 export default function AdminLogin({ onLoginSuccess, onNavigateStore }) {
   const { siteSettings } = useCms();
-  const [passcode, setPasscode] = useState('');
+  const [email, setEmail] = useState('mangogarden54@gmail.com');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -41,8 +43,8 @@ export default function AdminLogin({ onLoginSuccess, onNavigateStore }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!passcode.trim()) {
-      setErrorMessage('অনুগ্রহ করে অ্যাডমিন পাসকোড লিখুন।');
+    if (!password.trim()) {
+      setErrorMessage('অনুগ্রহ করে অ্যাডমিন পাসওয়ার্ড লিখুন।');
       triggerShake();
       return;
     }
@@ -53,7 +55,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateStore }) {
     setErrorMessage('');
 
     setTimeout(() => {
-      const res = login(passcode, rememberMe);
+      const res = login(email, password, rememberMe);
       setIsSubmitting(false);
 
       if (res.success) {
@@ -96,14 +98,14 @@ export default function AdminLogin({ onLoginSuccess, onNavigateStore }) {
         <div className="hbz-login-header">
           <div className="hbz-login-badge">
             <ShieldCheck size={14} className="hbz-badge-icon" />
-            <span>অ্যাডমিন সিকিউরিটি পোর্টাল</span>
+            <span>ম্যাঙ্গো গার্ডেন অ্যাডমিন পোর্টাল</span>
           </div>
 
           <h1 className="hbz-login-title">
             {siteSettings?.store_name || 'ম্যাঙ্গো গার্ডেন'} অ্যাডমিন
           </h1>
           <p className="hbz-login-subtitle">
-            অর্ডার, ডেলিভারি ও ওয়েবসাইট কনফিগারেশন অ্যাক্সেস করতে আপনার সিক্রেট পাসকোড দিন।
+            অর্ডার, ডেলিভারি ও ওয়েবসাইট কনফিগারেশন অ্যাক্সেস করতে আপনার ইমেইল ও পাসওয়ার্ড দিন।
           </p>
         </div>
 
@@ -122,24 +124,50 @@ export default function AdminLogin({ onLoginSuccess, onNavigateStore }) {
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="hbz-login-form">
+          {/* Email Input */}
           <div className="hbz-input-group">
-            <label htmlFor="hbz-passcode" className="hbz-input-label">
-              অ্যাডমিন পাসকোড (Passcode)
+            <label htmlFor="hbz-email" className="hbz-input-label">
+              অ্যাডমিন ইমেইল (Email)
             </label>
             <div className="hbz-input-box">
               <span className="hbz-input-icon">
-                <KeyRound size={18} />
+                <Mail size={18} />
+              </span>
+              <input
+                id="hbz-email"
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errorMessage) setErrorMessage('');
+                }}
+                disabled={isLocked || isSubmitting}
+                placeholder="mangogarden54@gmail.com"
+                className="hbz-input-field"
+                autoComplete="username"
+              />
+            </div>
+          </div>
+
+          {/* Password Input */}
+          <div className="hbz-input-group">
+            <label htmlFor="hbz-passcode" className="hbz-input-label">
+              অ্যাডমিন পাসওয়ার্ড (Password)
+            </label>
+            <div className="hbz-input-box">
+              <span className="hbz-input-icon">
+                <Lock size={18} />
               </span>
               <input
                 id="hbz-passcode"
                 type={showPassword ? 'text' : 'password'}
-                value={passcode}
+                value={password}
                 onChange={(e) => {
-                  setPasscode(e.target.value);
+                  setPassword(e.target.value);
                   if (errorMessage) setErrorMessage('');
                 }}
                 disabled={isLocked || isSubmitting}
-                placeholder="আপনার অ্যাডমিন পাসকোড লিখুন..."
+                placeholder="Ra@169154"
                 className="hbz-input-field"
                 autoFocus
                 autoComplete="current-password"
@@ -148,7 +176,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateStore }) {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="hbz-toggle-visibility"
-                aria-label={showPassword ? 'Hide passcode' : 'Show passcode'}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
                 tabIndex={-1}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
