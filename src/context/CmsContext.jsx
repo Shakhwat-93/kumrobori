@@ -22,9 +22,10 @@ export const DEFAULT_SITE_SETTINGS = {
   cod_notice: 'অর্ডার করার পূর্বে অনুগ্রহ করে নিশ্চিত হয়ে অর্ডার করুন। অযথা অর্ডার করে কুরিয়ার চার্জ অপচয় করা থেকে বিরত থাকুন।',
   timer_enabled: true,
   timer_duration_hours: 2,
-  pixel_enabled: false,
+  pixel_enabled: true,
   tiktok_pixel_id: '',
-  fb_pixel_id: ''
+  fb_pixel_id: '',
+  gtm_id: 'GTM-N9Q2Z7P4'
 };
 
 export const DEFAULT_THEME_SETTINGS = {
