@@ -38,7 +38,6 @@ export default function AdminLayout({ activeTab, setActiveTab, onNavigateStore, 
 
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutGrid },
-    { id: 'content', label: 'Content', icon: Sliders },
     { id: 'pixel', label: 'Pixel Setup', icon: Target },
     { id: 'courier', label: 'Fraud & Courier', icon: ShieldCheck },
     { id: 'stock', label: 'Stock', icon: Package },

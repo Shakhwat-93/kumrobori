@@ -3,7 +3,6 @@ import AdminLayout from './AdminLayout';
 import AdminLogin from './components/AdminLogin';
 import { isAuthenticated, logout } from './authService';
 import EasyOverview from './pages/EasyOverview';
-import EasyContent from './pages/EasyContent';
 import EasyPixelSetup from './pages/EasyPixelSetup';
 import EasyCourierSetup from './pages/EasyCourierSetup';
 import EasyStock from './pages/EasyStock';
@@ -43,10 +42,6 @@ export default function AdminApp({ onNavigateStore }) {
     >
       {activeTab === 'overview' && (
         <EasyOverview setActiveTab={setActiveTab} />
-      )}
-
-      {activeTab === 'content' && (
-        <EasyContent />
       )}
 
       {activeTab === 'pixel' && (
