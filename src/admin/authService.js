@@ -1,10 +1,10 @@
 /**
- * Herbheez BD — Production Admin Authentication Service
+ * Mango Garden — Production Admin Authentication Service
  * Secure local session management with rate limiting and tamper detection.
  */
 
-const STORAGE_KEY = 'herbheez_admin_auth_v1';
-const ATTEMPTS_KEY = 'herbheez_admin_attempts_v1';
+const STORAGE_KEY = 'mangogarden_admin_auth_v1';
+const ATTEMPTS_KEY = 'mangogarden_admin_attempts_v1';
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_SECONDS = 60;
 const SESSION_TTL_HOURS = 24 * 7; // 7 days
@@ -22,7 +22,7 @@ const AUTHORIZED_PASSCODES = [
  */
 function createSessionToken(passcode) {
   const timestamp = Date.now();
-  const salt = 'herbheez_secure_salt_2026';
+  const salt = 'mangogarden_secure_salt_2026';
   let hash = 0;
   const str = `${passcode}_${timestamp}_${salt}`;
   for (let i = 0; i < str.length; i++) {
@@ -31,7 +31,7 @@ function createSessionToken(passcode) {
     hash |= 0;
   }
   return {
-    token: `hbz_${Math.abs(hash).toString(36)}_${timestamp.toString(36)}`,
+    token: `mg_${Math.abs(hash).toString(36)}_${timestamp.toString(36)}`,
     createdAt: timestamp,
     expiresAt: timestamp + SESSION_TTL_HOURS * 60 * 60 * 1000
   };

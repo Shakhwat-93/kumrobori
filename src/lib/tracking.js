@@ -1,5 +1,5 @@
 /**
- * Enterprise Tracking Engine for Zero Allergy / Herbheez BD
+ * Enterprise Tracking Engine for Mango Garden Kumro Bori
  * Supports:
  * 1. Facebook Meta Browser Pixel
  * 2. Facebook Conversions API (CAPI) with Server-Side Deduplication & Test Event Code
@@ -209,8 +209,8 @@ export function trackViewContent({ product, siteSettings }) {
   if (typeof window === 'undefined' || !product) return;
   const eventId = `vc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const price = typeof product.price === 'number' ? product.price : parseFloat(product.price) || 650;
-  const title = product.title || product.package_name || 'Zero Allergy (জিরো এলার্জি)';
-  const prodId = String(product.id || 'za-course');
+  const title = product.title || product.package_name || 'ঘরোয়া খাঁটি কুমড়ো বড়ি';
+  const prodId = String(product.id || 'kb-pack');
 
   // 1. Meta Pixel
   if (window.fbq) {
@@ -273,8 +273,8 @@ export function trackAddToCart({ product, quantity = 1, total, siteSettings }) {
   if (typeof window === 'undefined' || !product) return;
   const eventId = `atc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const val = Number(total || (product.price || 0) * quantity);
-  const title = product.title || product.package_name || 'Zero Allergy (জিরো এলার্জি)';
-  const prodId = String(product.id || 'za-course');
+  const title = product.title || product.package_name || 'ঘরোয়া খাঁটি কুমড়ো বড়ি';
+  const prodId = String(product.id || 'kb-pack');
   const unitPrice = Number(product.price || (quantity > 0 ? val / quantity : val));
 
   // 1. Meta Pixel
@@ -339,8 +339,8 @@ export function trackInitiateCheckout({ product, quantity = 1, total, siteSettin
   if (typeof window === 'undefined' || !product) return;
   const eventId = `ic_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const val = Number(total || (product.price || 0) * quantity);
-  const title = product.title || product.package_name || 'Zero Allergy (জিরো এলার্জি)';
-  const prodId = String(product.id || 'za-course');
+  const title = product.title || product.package_name || 'ঘরোয়া খাঁটি কুমড়ো বড়ি';
+  const prodId = String(product.id || 'kb-pack');
   const unitPrice = Number(product.price || (quantity > 0 ? val / quantity : val));
 
   // 1. Meta Pixel
@@ -407,9 +407,9 @@ export async function trackPurchase({ order, siteSettings }) {
   // Crucial: Use exact same order_id as eventID for Meta browser & CAPI deduplication!
   const eventId = order.order_id || `ORD-${Date.now()}`;
   const totalVal = parseFloat(order.total_price || order.total || 0);
-  const pkgName = order.package_name || 'Zero Allergy (জিরো এলার্জি)';
+  const pkgName = order.package_name || 'ঘরোয়া খাঁটি কুমড়ো বড়ি';
   const qty = getEffectiveOrderQty(order);
-  const prodId = 'za-course';
+  const prodId = 'kb-pack';
   const unitPrice = Number(order.unit_price || (qty > 0 ? totalVal / qty : totalVal));
 
   console.log(`[Tracking] Triggering Purchase tracking for ${eventId}...`, order);

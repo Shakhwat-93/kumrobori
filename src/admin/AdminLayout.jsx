@@ -141,7 +141,7 @@ export default function AdminLayout({ activeTab, setActiveTab, onNavigateStore, 
           <div className="easy-drawer-header">
             <div className="easy-drawer-brand">
               <Store size={18} color="#ea580c" />
-              <span>{siteSettings?.store_name || 'Herbheez'} Admin</span>
+              <span>{siteSettings?.store_name || 'ম্যাঙ্গো গার্ডেন'} Admin</span>
             </div>
             <button
               type="button"

@@ -386,7 +386,7 @@ export default function OrdersManager() {
 
                       {/* Product Package */}
                       <td className="td-product">
-                        <div className="adm-pkg-name">{ord.package_name || 'Herbheez Course'}</div>
+                        <div className="adm-pkg-name">{ord.package_name || ord.product_name || 'কুমড়ো বড়ি'}</div>
                         <div className="adm-pkg-qty">Qty: {getEffectiveOrderQty(ord)}</div>
                       </td>
 
@@ -519,7 +519,7 @@ export default function OrdersManager() {
                     <div className="adm-card-pkg-info">
                       <Package size={14} color="#ea580c" />
                       <div className="adm-card-pkg-text">
-                        <strong>{ord.package_name || 'Herbheez Course'}</strong>
+                        <strong>{ord.package_name || ord.product_name || 'কুমড়ো বড়ি'}</strong>
                         <span className="adm-card-qty-badge">× {getEffectiveOrderQty(ord)}</span>
                       </div>
                     </div>
@@ -688,7 +688,7 @@ export default function OrdersManager() {
               <div className="adm-modal-info-card">
                 <div className="adm-modal-info-heading">Order Summary:</div>
                 <div className="adm-modal-calc-row">
-                  <span>{selectedOrder.package_name || 'Zero Allergy'}</span>
+                  <span>{selectedOrder.package_name || selectedOrder.product_name || 'কুমড়ো বড়ি'}</span>
                   <span className="bold">× {getEffectiveOrderQty(selectedOrder)}</span>
                 </div>
                 <div className="adm-modal-calc-row">

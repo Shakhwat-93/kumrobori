@@ -192,16 +192,8 @@ export async function processOrderSubmission(orderData, req) {
   const parsedUnitPrice = Number(unit_price) || 0;
   const parsedTotal = Number(total_price) || parsedUnitPrice * parsedQty;
 
-  // Enforce: 1200 taka total or 2-bottle course is strictly 2 packets minimum
-  if (
-    (parsedTotal === 1200 || (package_name && (package_name.includes('২ বোতল') || package_name.includes('2 বোতল') || package_name.includes('২ মাসের')))) &&
-    parsedQty < 2
-  ) {
-    parsedQty = 2;
-  }
-
   const finalOrderId =
-    order_id || `ORD-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
+    order_id || `KB-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
 
   // 4. Call atomic database RPC function
   const { data: rpcResult, error: rpcError } = await supabaseAdmin.rpc('submit_order_secure', {

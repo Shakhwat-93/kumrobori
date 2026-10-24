@@ -13,11 +13,11 @@ export default function EasyStock() {
         products.map((p) => ({
           id: p.id,
           title: p.title,
-          sku: p.sku || `ZA-0${p.id}`,
+          sku: p.sku || `KB-0${p.id}`,
           price: p.price,
           stock_qty: p.stock_qty ?? 150,
           status: p.status || 'active',
-          images: p.images || ['/images/IMG_7091.webp']
+          images: p.images || ['/img/kumro-bori.webp']
         }))
       );
     }
@@ -71,7 +71,7 @@ export default function EasyStock() {
           <div key={item.id} className="easy-subcard">
             <div className="easy-stock-item-row">
               <img
-                src={item.images?.[0] || '/images/IMG_7091.webp'}
+                src={item.images?.[0] || '/img/kumro-bori.webp'}
                 alt={item.title}
                 className="easy-stock-thumb"
               />

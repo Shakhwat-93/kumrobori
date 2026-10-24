@@ -70,7 +70,7 @@ export default function EasyPixelSetup() {
         order_id: `TEST-${Math.floor(100000 + Math.random() * 900000)}`,
         name: 'Test Customer',
         phone: '01700000000',
-        package_name: 'Zero Allergy (জিরো এলার্জি)',
+        package_name: 'ঘরোয়া খাঁটি কুমড়ো বড়ি',
         quantity: 1,
         unit_price: 650,
         total_price: 650,
