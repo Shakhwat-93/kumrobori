@@ -50,10 +50,27 @@ function Header() {
   return (
     <header className="header">
       <a href="#top" className="brand">
-        <span className="brand-dot">ক</span>
-        <span>কুমড়ো বড়ি</span>
+        <img src="/img/logo.jpg" alt="ম্যাঙ্গো গার্ডেন লোগো" className="brand-logo" />
+        <div className="brand-info">
+          <span className="brand-title">ম্যাঙ্গো গার্ডেন</span>
+          <span className="brand-tag">খাঁটি কুমড়ো বড়ি</span>
+        </div>
       </a>
-      <button className="btn btn-sm" onClick={() => scrollToOrder()}>অর্ডার করুন</button>
+      <div className="header-actions">
+        <a
+          href="https://www.facebook.com/mangogardenbd1"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="header-fb-btn"
+          aria-label="ম্যাঙ্গো গার্ডেন ফেসবুক পেজ"
+          title="আমাদের ফেসবুক পেজ"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+        </a>
+        <button className="btn btn-sm" onClick={() => scrollToOrder()}>অর্ডার করুন</button>
+      </div>
     </header>
   )
 }
@@ -64,7 +81,7 @@ function Hero() {
       <div className="blob blob-1" />
       <div className="blob blob-2" />
       <div className="hero-inner">
-        <span className="pill reveal">🌿 ১০০% ঘরে তৈরি · রোদে শুকানো</span>
+        <span className="pill reveal">🌿 ম্যাঙ্গো গার্ডেন · ১০০% ঘরে তৈরি · রোদে শুকানো</span>
         <h1 className="reveal">
           ঘরোয়া স্বাদের <span className="hl">খাঁটি</span> কুমড়ো বড়ি
         </h1>
@@ -405,6 +422,30 @@ function StickyBar() {
   )
 }
 
+function FloatingFacebook() {
+  return (
+    <aside aria-label="সোশ্যাল চ্যাট">
+      <a
+        href="https://www.facebook.com/mangogardenbd1"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="floating-fb"
+        aria-label="ফেসবুকে যোগাযোগ করুন"
+        title="ম্যাঙ্গো গার্ডেন ফেসবুক পেজ"
+      >
+        <span className="floating-fb-pulse" />
+        <div className="floating-fb-btn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+          <span className="floating-fb-status" />
+        </div>
+        <span className="floating-fb-text">ফেসবুকে মেসেজ দিন</span>
+      </a>
+    </aside>
+  )
+}
+
 export default function App() {
   useReveal()
   return (
@@ -422,10 +463,27 @@ export default function App() {
         <FAQ />
       </main>
       <footer className="footer">
-        <b>কুমড়ো বড়ি</b>
-        <p>ঘরোয়া স্বাদের খাঁটি দেশি পণ্য · সারা বাংলাদেশে হোম ডেলিভারি</p>
-        <small>© {toBn(new Date().getFullYear())} সর্বস্বত্ব সংরক্ষিত</small>
+        <div className="footer-brand">
+          <img src="/img/logo.jpg" alt="ম্যাঙ্গো গার্ডেন লোগো" className="footer-logo" />
+          <b>ম্যাঙ্গো গার্ডেন</b>
+        </div>
+        <p>ঘরোয়া স্বাদের খাঁটি দেশি পণ্য ও কুমড়ো বড়ি · সারা বাংলাদেশে হোম ডেলিভারি</p>
+        <div className="footer-links">
+          <a
+            href="https://www.facebook.com/mangogardenbd1"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer-fb-pill"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+            <span>ফেসবুক পেজ ভিজিট করুন</span>
+          </a>
+        </div>
+        <small>© {toBn(new Date().getFullYear())} ম্যাঙ্গো গার্ডেন · সর্বস্বত্ব সংরক্ষিত</small>
       </footer>
+      <FloatingFacebook />
       <StickyBar />
     </>
   )
