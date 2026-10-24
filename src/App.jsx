@@ -3,6 +3,8 @@ import { DELIVERY_CHARGE, boriPrices, combos, products, orderOptions } from './d
 import { submitOrder } from './supabase.js'
 import { CmsProvider } from './context/CmsContext.jsx'
 import AdminApp from './admin/AdminApp.jsx'
+import OrderSuccessPage from './pages/OrderSuccessPage.jsx'
+import { fetchClientIp, trackPurchase } from './lib/tracking.js'
 
 /* ---------- helpers ---------- */
 const bnDigits = '০১২৩৪৫৬৭৮৯'
@@ -260,7 +262,7 @@ function Story() {
   )
 }
 
-function OrderForm() {
+function OrderForm({ onOrderSuccess }) {
   const [sel, setSel] = useState('combo-799')
   const opt = orderOptions.find((o) => o.id === sel)
   const [qty, setQty] = useState(opt.min)
@@ -303,7 +305,9 @@ function OrderForm() {
 
     setLoading(true)
     const orderId = 'KB-' + Date.now().toString(36).toUpperCase()
-    const result = await submitOrder({
+    const clientIp = await fetchClientIp()
+
+    const orderPayload = {
       order_id: orderId,
       name: form.name.trim(),
       phone: form.phone.trim(),
@@ -317,12 +321,20 @@ function OrderForm() {
       delivery_charge: delivery,
       delivery_fee: delivery,
       total_price: total,
+      ip_address: clientIp,
       status: 'pending'
-    })
+    }
+
+    const result = await submitOrder(orderPayload)
     setLoading(false)
 
     if (result.success) {
-      setDone(true)
+      setForm({ name: '', phone: '', address: '' })
+      if (onOrderSuccess) {
+        onOrderSuccess(orderPayload)
+      } else {
+        setDone(true)
+      }
     } else {
       setOrderErr(result.error || 'অর্ডার করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।')
     }
@@ -479,7 +491,7 @@ function FloatingFacebook() {
   )
 }
 
-function Storefront({ onOpenAdmin }) {
+function Storefront({ onOpenAdmin, onOrderSuccess }) {
   useReveal()
   return (
     <>
@@ -492,7 +504,7 @@ function Storefront({ onOpenAdmin }) {
         <Combos />
         <Products />
         <Story />
-        <OrderForm />
+        <OrderForm onOrderSuccess={onOrderSuccess} />
         <FAQ />
       </main>
       <footer className="footer">
@@ -548,16 +560,33 @@ function Storefront({ onOpenAdmin }) {
 
 export default function App() {
   const [currentView, setCurrentView] = useState(() => {
-    if (window.location.hash === '#admin' || window.location.pathname.startsWith('/admin')) {
-      return 'admin';
+    if (typeof window !== 'undefined') {
+      if (window.location.hash === '#admin' || window.location.pathname.startsWith('/admin')) {
+        return 'admin';
+      }
+      if (window.location.hash === '#success' || window.location.pathname.startsWith('/order-success')) {
+        return 'success';
+      }
     }
     return 'store';
+  });
+
+  const [latestOrder, setLatestOrder] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const saved = sessionStorage.getItem('mangogarden_last_order');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
   });
 
   useEffect(() => {
     const handleHash = () => {
       if (window.location.hash === '#admin' || window.location.pathname.startsWith('/admin')) {
         setCurrentView('admin');
+      } else if (window.location.hash === '#success' || window.location.pathname.startsWith('/order-success')) {
+        setCurrentView('success');
       } else {
         setCurrentView('store');
       }
@@ -592,12 +621,28 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleOrderSuccess = (orderData) => {
+    setLatestOrder(orderData);
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem('mangogarden_last_order', JSON.stringify(orderData));
+      }
+    } catch (e) {
+      console.warn('sessionStorage save error:', e);
+    }
+    window.location.hash = 'success';
+    setCurrentView('success');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <CmsProvider>
       {currentView === 'admin' ? (
         <AdminApp onNavigateStore={navigateToStore} />
+      ) : currentView === 'success' ? (
+        <OrderSuccessPage order={latestOrder} onReturnHome={navigateToStore} />
       ) : (
-        <Storefront onOpenAdmin={navigateToAdmin} />
+        <Storefront onOpenAdmin={navigateToAdmin} onOrderSuccess={handleOrderSuccess} />
       )}
     </CmsProvider>
   );

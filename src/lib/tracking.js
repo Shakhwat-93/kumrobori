@@ -401,6 +401,24 @@ export function trackInitiateCheckout({ product, quantity = 1, total, siteSettin
 }
 
 // 4. PURCHASE EVENT (Browser Pixel + CAPI Server-Side Deduplication + Google dataLayer + TikTok)
+// Helper to safely fetch client IP address
+export async function fetchClientIp() {
+  if (typeof window === 'undefined') return 'unknown';
+  try {
+    const cached = sessionStorage.getItem('mg_client_ip');
+    if (cached) return cached;
+    const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(2500) });
+    const json = await res.json();
+    if (json?.ip) {
+      sessionStorage.setItem('mg_client_ip', json.ip);
+      return json.ip;
+    }
+  } catch (e) {
+    // fallback
+  }
+  return 'unknown';
+}
+
 export async function trackPurchase({ order, siteSettings }) {
   if (typeof window === 'undefined' || !order) return;
 
@@ -478,27 +496,45 @@ export async function trackPurchase({ order, siteSettings }) {
     console.log(`[Tracking] TikTok PlaceAnOrder & CompletePayment tracked for ${eventId}.`);
   }
 
-  // --- 3. Google dataLayer (Enhanced Ecommerce) ---
-  if (window.dataLayer) {
-    window.dataLayer.push({ ecommerce: null });
+  // --- 3. Google dataLayer (Enhanced Ecommerce & Client IP) ---
+  const clientIp = order.ip_address || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('mg_client_ip') : null) || 'unknown';
+
+  if (typeof window !== 'undefined') {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ ecommerce: null }); // Clear previous ecommerce object
     window.dataLayer.push({
       event: 'purchase',
       ecommerce: {
         transaction_id: eventId,
         value: totalVal,
+        tax: 0,
+        shipping: Number(order.delivery_fee || order.delivery_charge || 0),
         currency: 'BDT',
-        shipping: order.delivery_fee || 0,
         items: [
           {
-            item_id: pkgName,
+            item_id: order.package_id || 'kb-pack',
             item_name: pkgName,
-            price: order.unit_price || totalVal,
-            quantity: qty
+            price: unitPrice,
+            quantity: qty,
+            item_category: 'Food & Grocery'
           }
         ]
+      },
+      customer_name: order.name,
+      customer_phone: order.phone,
+      customer_address: order.address,
+      ip_address: clientIp,
+      customer_ip: clientIp,
+      client_ip: clientIp,
+      user_data: {
+        phone: order.phone,
+        address: {
+          street: order.address,
+          country: 'BD'
+        }
       }
     });
-    console.log('[Tracking] Google dataLayer Purchase pushed.');
+    console.log('[Tracking] Google dataLayer Purchase pushed with IP:', clientIp, eventId);
   }
 
   // --- 4. Facebook Conversions API (CAPI) Server-Side Transmission ---
