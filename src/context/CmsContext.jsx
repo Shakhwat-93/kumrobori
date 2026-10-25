@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 const CmsContext = createContext(null);
 
 export const DEFAULT_SITE_SETTINGS = {
-  store_name: 'ম্যাঙ্গো গার্ডেন',
+  store_name: 'ম্যাংগো গার্ডেন',
   tagline: 'ঘরোয়া স্বাদের খাঁটি কুমড়ো বড়ি ও দেশি পণ্য',
   logo_url: '/img/logo.jpg',
   favicon_url: '/img/logo.jpg',

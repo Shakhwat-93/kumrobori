@@ -63,9 +63,9 @@ function Header() {
   return (
     <header className="header">
       <a href="#top" className="brand">
-        <img src="/img/logo.jpg" alt="ম্যাঙ্গো গার্ডেন লোগো" className="brand-logo" />
+        <img src="/img/logo.jpg" alt="ম্যাংগো গার্ডেন লোগো" className="brand-logo" />
         <div className="brand-info">
-          <span className="brand-title">ম্যাঙ্গো গার্ডেন</span>
+          <span className="brand-title">ম্যাংগো গার্ডেন</span>
           <span className="brand-tag">খাঁটি কুমড়ো বড়ি</span>
         </div>
       </a>
@@ -75,7 +75,7 @@ function Header() {
           target="_blank"
           rel="noopener noreferrer"
           className="header-fb-btn"
-          aria-label="ম্যাঙ্গো গার্ডেন ফেসবুক পেজ"
+          aria-label="ম্যাংগো গার্ডেন ফেসবুক পেজ"
           title="আমাদের ফেসবুক পেজ"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -94,7 +94,7 @@ function Hero() {
       <div className="blob blob-1" />
       <div className="blob blob-2" />
       <div className="hero-inner">
-        <span className="pill reveal">🌿 ম্যাঙ্গো গার্ডেন · ১০০% ঘরে তৈরি · রোদে শুকানো</span>
+        <span className="pill reveal">🌿 ম্যাংগো গার্ডেন · ১০০% ঘরে তৈরি · রোদে শুকানো</span>
         <h1 className="reveal">
           ঘরোয়া স্বাদের <span className="hl">খাঁটি</span> কুমড়ো বড়ি
         </h1>
@@ -635,7 +635,7 @@ function FloatingFacebook() {
         rel="noopener noreferrer"
         className="floating-fb"
         aria-label="ফেসবুকে যোগাযোগ করুন"
-        title="ম্যাঙ্গো গার্ডেন ফেসবুক পেজ"
+        title="ম্যাংগো গার্ডেন ফেসবুক পেজ"
       >
         <span className="floating-fb-pulse" />
         <div className="floating-fb-btn">
@@ -669,8 +669,8 @@ function Storefront({ onOpenAdmin, onOrderSuccess }) {
       </main>
       <footer className="footer">
         <div className="footer-brand">
-          <img src="/img/logo.jpg" alt="ম্যাঙ্গো গার্ডেন লোগো" className="footer-logo" />
-          <b>ম্যাঙ্গো গার্ডেন</b>
+          <img src="/img/logo.jpg" alt="ম্যাংগো গার্ডেন লোগো" className="footer-logo" />
+          <b>ম্যাংগো গার্ডেন</b>
         </div>
         <p>ঘরোয়া স্বাদের খাঁটি দেশি পণ্য ও কুমড়ো বড়ি · সারা বাংলাদেশে হোম ডেলিভারি</p>
         <div className="footer-links">
@@ -710,7 +710,7 @@ function Storefront({ onOpenAdmin, onOrderSuccess }) {
             ⚙️ অ্যাডমিন প্যানেল
           </button>
         </div>
-        <small>© {toBn(new Date().getFullYear())} ম্যাঙ্গো গার্ডেন · সর্বস্বত্ব সংরক্ষিত</small>
+        <small>© {toBn(new Date().getFullYear())} ম্যাংগো গার্ডেন · সর্বস্বত্ব সংরক্ষিত</small>
       </footer>
       <FloatingFacebook />
       <StickyBar />

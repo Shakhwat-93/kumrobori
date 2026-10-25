@@ -78,7 +78,7 @@ export default function AdminLayout({ activeTab, setActiveTab, onNavigateStore, 
               <span>View Store</span>
             </button>
             <h1 className="easy-admin-title">
-              {siteSettings?.store_name || 'ম্যাঙ্গো গার্ডেন'} Admin
+              {siteSettings?.store_name || 'ম্যাংগো গার্ডেন'} Admin
             </h1>
           </div>
 
@@ -141,7 +141,7 @@ export default function AdminLayout({ activeTab, setActiveTab, onNavigateStore, 
           <div className="easy-drawer-header">
             <div className="easy-drawer-brand">
               <Store size={18} color="#ea580c" />
-              <span>{siteSettings?.store_name || 'ম্যাঙ্গো গার্ডেন'} Admin</span>
+              <span>{siteSettings?.store_name || 'ম্যাংগো গার্ডেন'} Admin</span>
             </div>
             <button
               type="button"

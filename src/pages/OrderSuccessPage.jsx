@@ -84,7 +84,7 @@ export default function OrderSuccessPage({ order, onReturnHome }) {
 
             <h1 className="success-title">আপনার অর্ডারটি সফল হয়েছে!</h1>
             <p className="success-subtitle">
-              ধন্যবাদ ম্যাঙ্গো গার্ডেনের সাথে থাকার জন্য। আপনার কুমড়ো বড়ির পার্সেলটি প্রস্তুত করা হচ্ছে।
+              ধন্যবাদ ম্যাংগো গার্ডেনের সাথে থাকার জন্য। আপনার কুমড়ো বড়ির পার্সেলটি প্রস্তুত করা হচ্ছে।
             </p>
           </div>
 

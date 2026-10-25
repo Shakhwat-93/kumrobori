@@ -98,11 +98,11 @@ export default function AdminLogin({ onLoginSuccess, onNavigateStore }) {
         <div className="hbz-login-header">
           <div className="hbz-login-badge">
             <ShieldCheck size={14} className="hbz-badge-icon" />
-            <span>ম্যাঙ্গো গার্ডেন অ্যাডমিন পোর্টাল</span>
+            <span>ম্যাংগো গার্ডেন অ্যাডমিন পোর্টাল</span>
           </div>
 
           <h1 className="hbz-login-title">
-            {siteSettings?.store_name || 'ম্যাঙ্গো গার্ডেন'} অ্যাডমিন
+            {siteSettings?.store_name || 'ম্যাংগো গার্ডেন'} অ্যাডমিন
           </h1>
           <p className="hbz-login-subtitle">
             অর্ডার, ডেলিভারি ও ওয়েবসাইট কনফিগারেশন অ্যাক্সেস করতে আপনার ইমেইল ও পাসওয়ার্ড দিন।
