@@ -15,7 +15,14 @@ function useReveal() {
   useEffect(() => {
     const els = document.querySelectorAll('.reveal')
     const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && (e.target.classList.add('in'), io.unobserve(e.target))),
+      (entries) =>
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('in')
+            e.target.setAttribute('data-revealed', 'true')
+            io.unobserve(e.target)
+          }
+        }),
       { threshold: 0.15 }
     )
     els.forEach((el) => io.observe(el))
@@ -424,16 +431,16 @@ function FAQ() {
   ]
   const [open, setOpen] = useState(0)
   return (
-    <section className="section">
+    <section className="section" id="faq">
       <div className="sec-head reveal">
         <span className="eyebrow">❓ প্রশ্ন</span>
         <h2>সাধারণ জিজ্ঞাসা</h2>
       </div>
-      <div className="faq">
+      <div className="faq reveal">
         {qs.map(([q, a], i) => (
-          <div className={`faq-item reveal ${open === i ? 'open' : ''}`} key={q}>
-            <button onClick={() => setOpen(open === i ? -1 : i)}>
-              {q}
+          <div className={`faq-item ${open === i ? 'open' : ''}`} key={q}>
+            <button type="button" onClick={() => setOpen(open === i ? -1 : i)} aria-expanded={open === i}>
+              <span>{q}</span>
               <span className="chev">+</span>
             </button>
             <div className="faq-a"><p>{a}</p></div>
