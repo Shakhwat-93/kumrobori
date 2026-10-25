@@ -35,7 +35,7 @@ export const products = [
   { id: 'p-bori', name: 'কুমড়ো বড়ি', price: 650, unit: 'কেজি', min: 1, image: '/img/kumro-bori.webp' },
   { id: 'p-dal', name: 'মাসকলাইয়ের ডাল', price: 300, unit: 'কেজি', min: 2, image: '/img/maskalai-dal.webp', pos: 'center bottom' },
   { id: 'p-ata', name: 'মাসকলাইয়ের আটা', price: 250, unit: 'কেজি', min: 2, image: '/img/maskalai-ata.webp' },
-  { id: 'p-gom', name: 'লাল গমের আটা', price: 130, unit: 'কেজি', min: 5, image: '/img/lal-gom-ata.webp' },
+  { id: 'p-gom', name: 'লাল গমের আটা', price: 130, unit: 'কেজি', min: 3, image: '/img/lal-gom-ata.webp' },
 ]
 
 // অর্ডার ফর্মে যেসব অপশন দেখাবে
