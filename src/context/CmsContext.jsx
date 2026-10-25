@@ -163,6 +163,24 @@ export function CmsProvider({ children }) {
 
   useEffect(() => {
     fetchData();
+
+    if (supabase) {
+      const channel = supabase
+        .channel('realtime_orders_channel')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload) => {
+            console.log('[Realtime] Orders table updated:', payload);
+            fetchData();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [fetchData]);
 
   // MUTATION: Update Site Settings

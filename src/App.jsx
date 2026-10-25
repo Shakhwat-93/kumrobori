@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DELIVERY_CHARGE, boriPrices, combos, products, orderOptions } from './data.js'
 import { submitOrder } from './supabase.js'
-import { CmsProvider } from './context/CmsContext.jsx'
+import { CmsProvider, useCms } from './context/CmsContext.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import OrderSuccessPage from './pages/OrderSuccessPage.jsx'
 import CustomerReviews from './components/CustomerReviews.jsx'
@@ -271,6 +271,7 @@ function Story() {
 }
 
 function OrderForm({ onOrderSuccess }) {
+  const { refreshAll } = useCms() || {}
   // Selected items: mapping of { [id]: quantity }
   const [selected, setSelected] = useState({ 'combo-799': 1 })
   const [form, setForm] = useState({ name: '', phone: '', address: '' })
@@ -385,6 +386,13 @@ function OrderForm({ onOrderSuccess }) {
     setLoading(false)
 
     if (result.success) {
+      if (refreshAll) {
+        try {
+          refreshAll()
+        } catch (e) {
+          // silent
+        }
+      }
       setForm({ name: '', phone: '', address: '' })
       if (onOrderSuccess) {
         onOrderSuccess(orderPayload)
