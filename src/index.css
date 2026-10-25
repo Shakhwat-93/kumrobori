@@ -723,3 +723,330 @@ main { max-width: 520px; margin: 0 auto; }
 .success-copy-btn:active {
   transform: translateY(0);
 }
+
+/* ==========================================================================
+   CUSTOMER REVIEWS SLIDER
+   ========================================================================== */
+.reviews-section {
+  padding-top: 10px;
+  padding-bottom: 24px;
+}
+
+.reviews-trust-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.trust-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e3a8a;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+
+.trust-icon {
+  color: #3b82f6;
+}
+
+.trust-icon.star-filled {
+  color: #f59e0b;
+  fill: #f59e0b;
+}
+
+.reviews-carousel-wrapper {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+  user-select: none;
+}
+
+.slider-nav-btn {
+  position: absolute;
+  top: 40%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--beige);
+  color: var(--coral-dark);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.slider-nav-btn:hover {
+  background: var(--coral);
+  color: var(--white);
+  border-color: var(--coral);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.slider-nav-btn:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.prev-btn {
+  left: -14px;
+}
+
+.next-btn {
+  right: -14px;
+}
+
+@media (max-width: 520px) {
+  .prev-btn { left: 4px; }
+  .next-btn { right: 4px; }
+}
+
+.reviews-carousel-window {
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1.5px solid var(--beige);
+  background: var(--white);
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.08);
+}
+
+.reviews-carousel-track {
+  display: flex;
+  transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
+}
+
+.review-slide {
+  min-width: 100%;
+  box-sizing: border-box;
+}
+
+.review-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.review-img-box {
+  position: relative;
+  background: #f8fafc;
+  cursor: zoom-in;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.review-screenshot-img {
+  width: 100%;
+  max-height: 440px;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s;
+}
+
+.review-img-box:hover .review-screenshot-img {
+  transform: scale(1.015);
+}
+
+.review-zoom-badge {
+  position: absolute;
+  bottom: 18px;
+  right: 18px;
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.review-details {
+  padding: 16px 18px;
+  background: var(--white);
+}
+
+.review-stars-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.review-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star-icon-gold {
+  color: #f59e0b;
+  fill: #f59e0b;
+}
+
+.review-verified-pill {
+  font-size: 11px;
+  font-weight: 700;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.review-quote {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--charcoal);
+  margin-bottom: 12px;
+  line-height: 1.45;
+  font-family: inherit;
+}
+
+.review-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.review-tag-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--coral-dark);
+  background: var(--blush);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.review-customer-name {
+  font-size: 12px;
+  color: var(--gray);
+}
+
+.slider-controls-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  padding: 0 4px;
+}
+
+.slider-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slider-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.slider-dot.active {
+  width: 26px;
+  border-radius: 999px;
+  background: var(--coral);
+}
+
+.slider-counter-pill {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--charcoal);
+  background: var(--white);
+  border: 1px solid var(--beige);
+  padding: 3px 10px;
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.reviews-bottom-cta {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.reviews-bottom-cta .btn {
+  font-size: 14px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--peach);
+}
+
+/* Lightbox Modal */
+.review-lightbox-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: lightboxFadeIn 0.2s ease-out;
+}
+
+@keyframes lightboxFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.review-lightbox-content {
+  position: relative;
+  max-width: 92vw;
+  max-height: 92vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-img {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 14px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+.lightbox-close-btn {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--coral);
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s;
+}
+
+.lightbox-close-btn:hover {
+  transform: scale(1.1);
+}
+

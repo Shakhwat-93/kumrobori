@@ -4,6 +4,7 @@ import { submitOrder } from './supabase.js'
 import { CmsProvider } from './context/CmsContext.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import OrderSuccessPage from './pages/OrderSuccessPage.jsx'
+import CustomerReviews from './components/CustomerReviews.jsx'
 import { fetchClientIp, trackPurchase } from './lib/tracking.js'
 
 /* ---------- helpers ---------- */
@@ -663,6 +664,7 @@ function Storefront({ onOpenAdmin, onOrderSuccess }) {
         <Products />
         <Story />
         <OrderForm onOrderSuccess={onOrderSuccess} />
+        <CustomerReviews />
         <FAQ />
       </main>
       <footer className="footer">
