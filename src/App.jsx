@@ -121,7 +121,7 @@ function Hero() {
 }
 
 function Marquee() {
-  const items = ['৭৯৯৳ কম্বোতে ফ্রি ডেলিভারি', '৯৫০৳ স্পেশাল কম্বো', 'ক্যাশ অন ডেলিভারি', 'সারা বাংলাদেশে হোম ডেলিভারি', '১০০% ঘরে তৈরি']
+  const items = ['৭৯৯৳ কম্বোতে ফ্রি ডেলিভারি', '৯৯০৳ স্পেশাল কম্বো', 'ক্যাশ অন ডেলিভারি', 'সারা বাংলাদেশে হোম ডেলিভারি', '১০০% ঘরে তৈরি']
   const row = [...items, ...items]
   return (
     <div className="marquee" aria-hidden="true">
@@ -190,7 +190,7 @@ function Combos() {
     <section className="section combo-sec" id="combo">
       <div className="sec-head reveal">
         <span className="eyebrow">🎁 কম্বো অফার</span>
-        <h2>এক প্যাকেজে ৩টি দেশি পণ্য</h2>
+        <h2>সেরা অফারে খাঁটি দেশি পণ্য</h2>
         <p>দুই কম্বোতেই <b>হোম ডেলিভারি সম্পূর্ণ ফ্রি!</b></p>
       </div>
       <div className="combo-list">
@@ -205,9 +205,9 @@ function Combos() {
               <h3>{c.title}</h3>
               <ul>
                 {c.items.map((it) => (
-                  <li key={it}>
-                    <span className="tick">✓</span>
-                    {it}
+                  <li key={it} className={it.includes('ফ্রি') ? 'highlight-free' : ''}>
+                    <span className="tick">{it.includes('ফ্রি') ? '🎁' : '✓'}</span>
+                    <span>{it.replace(/^🎁\s*/, '')}</span>
                   </li>
                 ))}
               </ul>
