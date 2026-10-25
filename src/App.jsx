@@ -270,9 +270,8 @@ function Story() {
 }
 
 function OrderForm({ onOrderSuccess }) {
-  const [sel, setSel] = useState('combo-799')
-  const opt = orderOptions.find((o) => o.id === sel)
-  const [qty, setQty] = useState(opt.min)
+  // Selected items: mapping of { [id]: quantity }
+  const [selected, setSelected] = useState({ 'combo-799': 1 })
   const [form, setForm] = useState({ name: '', phone: '', address: '' })
   const [err, setErr] = useState({})
   const [done, setDone] = useState(false)
@@ -283,21 +282,53 @@ function OrderForm({ onOrderSuccess }) {
     const h = (e) => {
       const o = orderOptions.find((x) => x.id === e.detail)
       if (o) {
-        setSel(o.id)
-        setQty(o.min)
+        setSelected({ [o.id]: o.min })
       }
     }
     window.addEventListener('pick-option', h)
     return () => window.removeEventListener('pick-option', h)
   }, [])
 
-  const pick = (o) => {
-    setSel(o.id)
-    setQty(o.min)
+  const toggleOption = (o) => {
+    const isSelected = Boolean(selected[o.id])
+    const currentIds = Object.keys(selected)
+
+    if (isSelected) {
+      if (currentIds.length > 1) {
+        const next = { ...selected }
+        delete next[o.id]
+        setSelected(next)
+      }
+    } else {
+      if (currentIds.length < 2) {
+        setSelected({ ...selected, [o.id]: o.min })
+      } else {
+        // If already 2 items selected: keep the first, replace the second
+        const [firstId] = currentIds
+        setSelected({ [firstId]: selected[firstId], [o.id]: o.min })
+      }
+    }
   }
 
-  const subtotal = opt.price * qty
-  const delivery = opt.freeDelivery ? 0 : DELIVERY_CHARGE
+  const updateQty = (id, newQty) => {
+    setSelected((prev) => ({
+      ...prev,
+      [id]: Math.max(1, newQty)
+    }))
+  }
+
+  const selectedList = Object.entries(selected).map(([id, qty]) => {
+    const opt = orderOptions.find((x) => x.id === id) || orderOptions[0]
+    return {
+      ...opt,
+      qty
+    }
+  })
+
+  // Has any combo offer been selected?
+  const hasCombo = selectedList.some((item) => item.id.startsWith('combo-'))
+  const subtotal = selectedList.reduce((sum, item) => sum + item.price * item.qty, 0)
+  const delivery = hasCombo ? 0 : DELIVERY_CHARGE
   const total = subtotal + delivery
 
   const submit = async (e) => {
@@ -314,21 +345,38 @@ function OrderForm({ onOrderSuccess }) {
     const orderId = 'KB-' + Date.now().toString(36).toUpperCase()
     const clientIp = await fetchClientIp()
 
+    const itemsPayload = selectedList.map((item) => ({
+      id: item.id,
+      name: item.label,
+      price: item.price,
+      quantity: item.qty,
+      unit: item.unit,
+      total: item.price * item.qty
+    }))
+
+    const formattedProductName = selectedList.length === 1
+      ? `${selectedList[0].label} (${toBn(selectedList[0].qty)} ${selectedList[0].unit})`
+      : selectedList.map((item) => `${item.label} (${toBn(item.qty)} ${item.unit})`).join(' + ')
+
+    const totalQty = selectedList.reduce((acc, item) => acc + item.qty, 0)
+
     const orderPayload = {
       order_id: orderId,
       name: form.name.trim(),
       phone: form.phone.trim(),
       address: form.address.trim(),
-      package_id: opt.id,
-      product_name: opt.label,
-      quantity: qty,
-      unit: opt.unit,
-      unit_price: opt.price,
+      package_id: selectedList.map((i) => i.id).join(', '),
+      product_name: formattedProductName,
+      package_name: formattedProductName,
+      quantity: totalQty,
+      unit: selectedList.length === 1 ? selectedList[0].unit : 'আইটেম',
+      unit_price: selectedList[0].price,
       subtotal: subtotal,
       delivery_charge: delivery,
       delivery_fee: delivery,
       total_price: total,
       ip_address: clientIp,
+      items: itemsPayload,
       status: 'pending'
     }
 
@@ -356,28 +404,116 @@ function OrderForm({ onOrderSuccess }) {
       </div>
 
       <form className="order-card reveal" onSubmit={submit} noValidate>
-        <label className="lbl">প্যাকেজ / পণ্য বেছে নিন</label>
-        <div className="opts">
-          {orderOptions.map((o) => (
-            <button type="button" key={o.id} className={`opt ${sel === o.id ? 'active' : ''}`} onClick={() => pick(o)}>
-              <span className="radio" />
-              <span className="opt-text">
-                <b>{o.label}</b>
-                <small className={o.freeDelivery ? 'free' : ''}>{o.sub}</small>
-              </span>
-              <span className="opt-price">
-                ৳{taka(o.price)}
-                {o.unit === 'কেজি' && <small>/কেজি</small>}
-              </span>
-            </button>
-          ))}
+        <div className="opt-header-row">
+          <label className="lbl" style={{ margin: 0 }}>প্যাকেজ / পণ্য বেছে নিন</label>
+          <span className="opt-limit-pill">সর্বোচ্চ ২টি আইটেম</span>
         </div>
 
-        <label className="lbl">পরিমাণ ({opt.unit})</label>
-        <div className="stepper">
-          <button type="button" onClick={() => setQty((q) => Math.max(opt.min, q - 1))} disabled={qty <= opt.min} aria-label="কমান">−</button>
-          <span key={qty} className="pop">{toBn(qty)}</span>
-          <button type="button" onClick={() => setQty((q) => q + 1)} aria-label="বাড়ান">+</button>
+        <div className="opt-helper-banner">
+          <span>💡 একসাথে যেকোনো <b>২টি পণ্য</b> সিলেক্ট করতে পারবেন।</span>
+          {hasCombo ? (
+            <span className="combo-free-pill">🎉 কম্বো সিলেক্ট করায় ডেলিভারি সম্পূর্ণ ফ্রি!</span>
+          ) : (
+            <span className="combo-hint-pill">🚚 কম্বো অফার নিলে ডেলিভারি চার্জ সম্পূর্ণ ফ্রি পাবেন!</span>
+          )}
+        </div>
+
+        <div className="opts">
+          {orderOptions.map((o) => {
+            const isSelected = Boolean(selected[o.id])
+            const isCombo = o.id.startsWith('combo-')
+            let deliverySub = o.sub
+            let isFree = false
+            if (isCombo) {
+              deliverySub = 'ফ্রি ডেলিভারি'
+              isFree = true
+            } else if (hasCombo) {
+              deliverySub = '🎉 ফ্রি ডেলিভারি (কম্বোর সাথে)'
+              isFree = true
+            }
+
+            return (
+              <button
+                type="button"
+                key={o.id}
+                className={`opt ${isSelected ? 'active' : ''}`}
+                onClick={() => toggleOption(o)}
+                aria-pressed={isSelected}
+              >
+                <span className={`chk ${isSelected ? 'checked' : ''}`}>
+                  {isSelected ? '✓' : ''}
+                </span>
+                <span className="opt-text">
+                  <b>{o.label}</b>
+                  <small className={isFree ? 'free' : ''}>{deliverySub}</small>
+                </span>
+                <span className="opt-price">
+                  ৳{taka(o.price)}
+                  {o.unit === 'কেজি' && <small>/কেজি</small>}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="qty-section">
+          <label className="lbl">
+            {selectedList.length > 1
+              ? `নির্বাচিত পণ্যের পরিমাণ (${toBn(selectedList.length)}টি পণ্য)`
+              : `পরিমাণ (${selectedList[0]?.unit || 'কেজি'})`}
+          </label>
+
+          {selectedList.length === 1 ? (
+            <div className="stepper">
+              <button
+                type="button"
+                onClick={() => updateQty(selectedList[0].id, Math.max(selectedList[0].min, selectedList[0].qty - 1))}
+                disabled={selectedList[0].qty <= selectedList[0].min}
+                aria-label="কমান"
+              >
+                −
+              </button>
+              <span key={selectedList[0].qty} className="pop">{toBn(selectedList[0].qty)}</span>
+              <button
+                type="button"
+                onClick={() => updateQty(selectedList[0].id, selectedList[0].qty + 1)}
+                aria-label="বাড়ান"
+              >
+                +
+              </button>
+            </div>
+          ) : (
+            <div className="multi-steppers">
+              {selectedList.map((item) => (
+                <div key={item.id} className="multi-stepper-row">
+                  <div className="multi-stepper-info">
+                    <b>{item.label}</b>
+                    <small>
+                      ৳{taka(item.price)} × {toBn(item.qty)} {item.unit} = ৳{taka(item.price * item.qty)}
+                    </small>
+                  </div>
+                  <div className="stepper stepper-sm">
+                    <button
+                      type="button"
+                      onClick={() => updateQty(item.id, Math.max(item.min, item.qty - 1))}
+                      disabled={item.qty <= item.min}
+                      aria-label="কমান"
+                    >
+                      −
+                    </button>
+                    <span className="pop">{toBn(item.qty)} {item.unit}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateQty(item.id, item.qty + 1)}
+                      aria-label="বাড়ান"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="field">
@@ -397,9 +533,24 @@ function OrderForm({ onOrderSuccess }) {
         </div>
 
         <div className="summary">
-          <div><span>সাবটোটাল</span><span>৳{taka(subtotal)}</span></div>
-          <div><span>ডেলিভারি চার্জ</span>{delivery ? <span>৳{taka(delivery)}</span> : <span className="free">ফ্রি 🎉</span>}</div>
-          <div className="total"><span>সর্বমোট</span><span key={total} className="pop">৳{taka(total)}</span></div>
+          {selectedList.map((item) => (
+            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#4b5563' }}>
+              <span>{item.label} ({toBn(item.qty)} {item.unit})</span>
+              <span>৳{taka(item.price * item.qty)}</span>
+            </div>
+          ))}
+          <div>
+            <span>ডেলিভারি চার্জ</span>
+            {delivery === 0 ? (
+              <span className="free">ফ্রি 🎉 {hasCombo ? '(কম্বো অফার)' : ''}</span>
+            ) : (
+              <span>৳{taka(delivery)}</span>
+            )}
+          </div>
+          <div className="total">
+            <span>সর্বমোট</span>
+            <span key={total} className="pop">৳{taka(total)}</span>
+          </div>
         </div>
 
         {orderErr && <span className="err" style={{ marginBottom: '12px', textAlign: 'center' }}>{orderErr}</span>}

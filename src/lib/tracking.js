@@ -510,15 +510,23 @@ export async function trackPurchase({ order, siteSettings }) {
         tax: 0,
         shipping: Number(order.delivery_fee || order.delivery_charge || 0),
         currency: 'BDT',
-        items: [
-          {
-            item_id: order.package_id || 'kb-pack',
-            item_name: pkgName,
-            price: unitPrice,
-            quantity: qty,
-            item_category: 'Food & Grocery'
-          }
-        ]
+        items: Array.isArray(order.items) && order.items.length > 0
+          ? order.items.map((it) => ({
+              item_id: String(it.id || 'kb-pack'),
+              item_name: String(it.name || it.label || pkgName),
+              price: Number(it.price || it.unit_price || 0),
+              quantity: Number(it.quantity || it.qty || 1),
+              item_category: 'Food & Grocery'
+            }))
+          : [
+              {
+                item_id: order.package_id || 'kb-pack',
+                item_name: pkgName,
+                price: unitPrice,
+                quantity: qty,
+                item_category: 'Food & Grocery'
+              }
+            ]
       },
       customer_name: order.name,
       customer_phone: order.phone,

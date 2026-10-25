@@ -19,8 +19,9 @@ export function formatOrderCourierText(ord) {
   const unit = ord.unit || 'প্যাক';
   const price = Math.round(Number(ord.total_price || ord.total || 0));
   const product = ord.product_name || ord.package_name || 'কুমড়ো বড়ি';
+  const productLine = product.includes('(') ? product : `${product} (${qty} ${unit})`;
 
-  return `${name}\n${address}\n${phone}\n${product} (${qty} ${unit}) = ${price} taka`;
+  return `${name}\n${address}\n${phone}\n${productLine} = ${price} taka`;
 }
 
 export default {

@@ -112,9 +112,11 @@ export default function OrderSuccessPage({ order, onReturnHome }) {
                 <span className="success-val">{formattedDate}</span>
               </div>
 
-              <div className="success-row">
+              <div className="success-row" style={{ alignItems: 'flex-start' }}>
                 <span className="success-lbl">পণ্য ও প্যাকেজ</span>
-                <span className="success-val">{productName} ({quantity} {unit})</span>
+                <span className="success-val" style={{ textAlign: 'right', maxWidth: '65%' }}>
+                  {productName.includes('(') ? productName : `${productName} (${quantity} ${unit})`}
+                </span>
               </div>
 
               <div className="success-row">
