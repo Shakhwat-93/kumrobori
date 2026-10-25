@@ -205,7 +205,7 @@ export default function CustomerReviews() {
           className="btn btn-soft"
           onClick={scrollToOrder}
         >
-          <span>নিশ্চিন্তে অর্ডার করুন — ফর্ম পূরণ করুন ↑</span>
+          <span>অর্ডার করতে নিচের ফর্মটি পূরণ করুন ↓</span>
         </button>
       </div>
 

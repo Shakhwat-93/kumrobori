@@ -663,8 +663,8 @@ function Storefront({ onOpenAdmin, onOrderSuccess }) {
         <Combos />
         <Products />
         <Story />
-        <OrderForm onOrderSuccess={onOrderSuccess} />
         <CustomerReviews />
+        <OrderForm onOrderSuccess={onOrderSuccess} />
         <FAQ />
       </main>
       <footer className="footer">
