@@ -17,7 +17,7 @@ import './adminLogin.css';
 
 export default function AdminLogin({ onLoginSuccess, onNavigateStore }) {
   const { siteSettings } = useCms();
-  const [email, setEmail] = useState('mangogarden54@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -142,7 +142,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateStore }) {
                   if (errorMessage) setErrorMessage('');
                 }}
                 disabled={isLocked || isSubmitting}
-                placeholder="mangogarden54@gmail.com"
+                placeholder="আপনার ইমেইল অ্যাড্রেস লিখুন"
                 className="hbz-input-field"
                 autoComplete="username"
               />
@@ -167,7 +167,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateStore }) {
                   if (errorMessage) setErrorMessage('');
                 }}
                 disabled={isLocked || isSubmitting}
-                placeholder="Ra@169154"
+                placeholder="আপনার পাসওয়ার্ড লিখুন"
                 className="hbz-input-field"
                 autoFocus
                 autoComplete="current-password"
