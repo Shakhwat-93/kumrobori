@@ -192,15 +192,20 @@ function Combos() {
       <div className="sec-head reveal">
         <span className="eyebrow">🎁 কম্বো অফার</span>
         <h2>সেরা অফারে খাঁটি দেশি পণ্য</h2>
-        <p>দুই কম্বোতেই <b>হোম ডেলিভারি সম্পূর্ণ ফ্রি!</b></p>
+        <p>সবগুলো কম্বোতেই <b>হোম ডেলিভারি সম্পূর্ণ ফ্রি!</b></p>
       </div>
       <div className="combo-list">
         {combos.map((c, i) => (
           <article className={`combo-card reveal ${c.featured ? 'featured' : ''}`} style={{ transitionDelay: `${i * 120}ms` }} key={c.id}>
             <div className="combo-img">
-              <img src={c.image} alt={c.title} loading="lazy" />
+              <img
+                src={c.image}
+                alt={c.title}
+                loading="lazy"
+                onError={(e) => { e.currentTarget.src = '/img/combo.webp' }}
+              />
               <span className="sale-badge">ফ্রি ডেলিভারি</span>
-              {c.featured && <span className="hot-badge">❤️ স্পেশাল</span>}
+              {c.featured && <span className="hot-badge">{c.badge || '❤️ স্পেশাল'}</span>}
             </div>
             <div className="combo-body">
               <h3>{c.title}</h3>

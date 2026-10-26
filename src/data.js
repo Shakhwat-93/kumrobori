@@ -29,6 +29,22 @@ export const combos = [
     image: '/img/combo.webp',
     featured: true,
   },
+  {
+    id: 'combo-gur',
+    title: 'স্পেশাল শীতকালীন অফার — ৫ ধরনের খেজুরের গুড়',
+    badge: '🔥 শীতকালীন অফার',
+    price: 990,
+    items: [
+      '৫০০ গ্রাম গোল পাটালি গুড়',
+      '৫০০ গ্রাম ফয়েল পাটালি গুড়',
+      '৫০০ গ্রাম খাঁটি ঝোলা গুড়',
+      '৫০০ গ্রাম দানাদার গুড়',
+      '৫০০ গ্রাম চকলেট গুড়',
+      '🎁 হোম ডেলিভারি চার্জ সম্পূর্ণ ফ্রি!'
+    ],
+    image: '/img/khejurer-gur-combo.jpg',
+    featured: true,
+  },
 ]
 
 export const products = [
