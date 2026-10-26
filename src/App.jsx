@@ -294,6 +294,7 @@ function OrderForm({ onOrderSuccess }) {
   const toggleOption = (o) => {
     const isSelected = Boolean(selected[o.id])
     const currentIds = Object.keys(selected)
+    const isNewCombo = o.id.startsWith('combo-')
 
     if (isSelected) {
       if (currentIds.length > 1) {
@@ -301,18 +302,51 @@ function OrderForm({ onOrderSuccess }) {
         delete next[o.id]
         setSelected(next)
       }
+      return
+    }
+
+    if (isNewCombo) {
+      // কম্বো ২টা একসাথে সিলেক্ট করা যাবে না: বিদ্যমান কম্বো থাকলে তা নতুন কম্বো দ্বারা পরিবর্তিত হবে
+      // এবং নিচে পূর্বে সিলেক্টেড সর্বোচ্চ ১টি সাধারণ পণ্য সাথে রাখা যাবে
+      const nonComboIds = currentIds.filter((id) => !id.startsWith('combo-'))
+      const next = { [o.id]: 1 }
+      if (nonComboIds.length > 0) {
+        const regId = nonComboIds[0]
+        next[regId] = selected[regId]
+      }
+      setSelected(next)
     } else {
-      if (currentIds.length < 2) {
-        setSelected({ ...selected, [o.id]: o.min })
+      // সাধারণ পণ্য ক্লিক করা হয়েছে
+      const comboId = currentIds.find((id) => id.startsWith('combo-'))
+
+      if (comboId) {
+        // ইতোমধ্যে ১টি কম্বো সিলেক্ট করা থাকলে তার সাথে সর্বোচ্চ ১টি সাধারণ পণ্য সিলেক্ট হতে পারবে
+        setSelected({
+          [comboId]: 1,
+          [o.id]: o.min
+        })
       } else {
-        // If already 2 items selected: keep the first, replace the second
-        const [firstId] = currentIds
-        setSelected({ [firstId]: selected[firstId], [o.id]: o.min })
+        // কোনো কম্বো নেই — সাধারণ পণ্যের ক্ষেত্রে সর্বোচ্চ ২টি সিলেক্ট রাখা যাবে
+        if (currentIds.length < 2) {
+          setSelected({
+            ...selected,
+            [o.id]: o.min
+          })
+        } else {
+          // পূর্বে ২টা সিলেক্ট থাকলে ১মটি রেখে ২য়টি পরিবর্তন হবে
+          const [firstId] = currentIds
+          setSelected({
+            [firstId]: selected[firstId],
+            [o.id]: o.min
+          })
+        }
       }
     }
   }
 
   const updateQty = (id, newQty) => {
+    // কম্বো অফারে পরিমাণ পরিবর্তন করা যাবে না (১ প্যাকেজ নির্দিষ্ট)
+    if (id.startsWith('combo-')) return
     setSelected((prev) => ({
       ...prev,
       [id]: Math.max(1, newQty)
@@ -419,11 +453,11 @@ function OrderForm({ onOrderSuccess }) {
         </div>
 
         <div className="opt-helper-banner">
-          <span>💡 একসাথে যেকোনো <b>২টি পণ্য</b> সিলেক্ট করতে পারবেন।</span>
+          <span>💡 ১টি কম্বো + ১টি সাধারণ পণ্য অথবা যেকোনো ২টি পণ্য বেছে নিতে পারেন।</span>
           {hasCombo ? (
             <span className="combo-free-pill">🎉 কম্বো সিলেক্ট করায় ডেলিভারি সম্পূর্ণ ফ্রি!</span>
           ) : (
-            <span className="combo-hint-pill">🚚 কম্বো অফার নিলে ডেলিভারি চার্জ সম্পূর্ণ ফ্রি পাবেন!</span>
+            <span className="combo-hint-pill">🚚 যেকোনো কম্বো নিলে পুরো অর্ডারে ফ্রি ডেলিভারি পাবেন!</span>
           )}
         </div>
 
@@ -469,58 +503,83 @@ function OrderForm({ onOrderSuccess }) {
           <label className="lbl">
             {selectedList.length > 1
               ? `নির্বাচিত পণ্যের পরিমাণ (${toBn(selectedList.length)}টি পণ্য)`
-              : `পরিমাণ (${selectedList[0]?.unit || 'কেজি'})`}
+              : selectedList[0]?.id.startsWith('combo-')
+                ? 'পরিমাণ (প্যাকেজ)'
+                : `পরিমাণ (${selectedList[0]?.unit || 'কেজি'})`}
           </label>
 
           {selectedList.length === 1 ? (
-            <div className="stepper">
-              <button
-                type="button"
-                onClick={() => updateQty(selectedList[0].id, Math.max(selectedList[0].min, selectedList[0].qty - 1))}
-                disabled={selectedList[0].qty <= selectedList[0].min}
-                aria-label="কমান"
-              >
-                −
-              </button>
-              <span key={selectedList[0].qty} className="pop">{toBn(selectedList[0].qty)}</span>
-              <button
-                type="button"
-                onClick={() => updateQty(selectedList[0].id, selectedList[0].qty + 1)}
-                aria-label="বাড়ান"
-              >
-                +
-              </button>
-            </div>
+            selectedList[0].id.startsWith('combo-') ? (
+              <div className="combo-fixed-single">
+                <div className="combo-fixed-pill">
+                  <span className="combo-fixed-icon">🎁</span>
+                  <span className="combo-fixed-text">১টি পূর্ণাঙ্গ কম্বো প্যাকেজ</span>
+                </div>
+                <span className="combo-fixed-badge">অফার প্যাক (নির্দিষ্ট)</span>
+              </div>
+            ) : (
+              <div className="stepper">
+                <button
+                  type="button"
+                  onClick={() => updateQty(selectedList[0].id, Math.max(selectedList[0].min, selectedList[0].qty - 1))}
+                  disabled={selectedList[0].qty <= selectedList[0].min}
+                  aria-label="কমান"
+                >
+                  −
+                </button>
+                <span key={selectedList[0].qty} className="pop">{toBn(selectedList[0].qty)}</span>
+                <button
+                  type="button"
+                  onClick={() => updateQty(selectedList[0].id, selectedList[0].qty + 1)}
+                  aria-label="বাড়ান"
+                >
+                  +
+                </button>
+              </div>
+            )
           ) : (
             <div className="multi-steppers">
-              {selectedList.map((item) => (
-                <div key={item.id} className="multi-stepper-row">
-                  <div className="multi-stepper-info">
-                    <b>{item.label}</b>
-                    <small>
-                      ৳{taka(item.price)} × {toBn(item.qty)} {item.unit} = ৳{taka(item.price * item.qty)}
-                    </small>
+              {selectedList.map((item) => {
+                const isCombo = item.id.startsWith('combo-')
+                return (
+                  <div key={item.id} className="multi-stepper-row">
+                    <div className="multi-stepper-info">
+                      <b>{item.label}</b>
+                      <small>
+                        {isCombo ? (
+                          <>৳{taka(item.price)} × ১ প্যাকেজ <span className="free-tag-inline">(ফ্রি ডেলিভারি)</span></>
+                        ) : (
+                          <>৳{taka(item.price)} × {toBn(item.qty)} {item.unit} = ৳{taka(item.price * item.qty)}</>
+                        )}
+                      </small>
+                    </div>
+                    {isCombo ? (
+                      <div className="combo-fixed-pill-sm">
+                        <span>📦 ১ প্যাকেজ</span>
+                      </div>
+                    ) : (
+                      <div className="stepper stepper-sm">
+                        <button
+                          type="button"
+                          onClick={() => updateQty(item.id, Math.max(item.min, item.qty - 1))}
+                          disabled={item.qty <= item.min}
+                          aria-label="কমান"
+                        >
+                          −
+                        </button>
+                        <span className="pop">{toBn(item.qty)} {item.unit}</span>
+                        <button
+                          type="button"
+                          onClick={() => updateQty(item.id, item.qty + 1)}
+                          aria-label="বাড়ান"
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div className="stepper stepper-sm">
-                    <button
-                      type="button"
-                      onClick={() => updateQty(item.id, Math.max(item.min, item.qty - 1))}
-                      disabled={item.qty <= item.min}
-                      aria-label="কমান"
-                    >
-                      −
-                    </button>
-                    <span className="pop">{toBn(item.qty)} {item.unit}</span>
-                    <button
-                      type="button"
-                      onClick={() => updateQty(item.id, item.qty + 1)}
-                      aria-label="বাড়ান"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
