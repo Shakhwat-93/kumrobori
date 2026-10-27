@@ -78,6 +78,89 @@ export function markOrderTracked(orderId) {
   }
 }
 
+// --- Transport-Level fbq Deduplication Guard ---
+let lastTrackedPurchaseTime = 0;
+let lastTrackedPurchaseId = null;
+let lastTrackedMessageTime = 0;
+
+export function ensureFbqDeduplicationGuard() {
+  if (typeof window === 'undefined') return;
+
+  if (window.fbq && window.fbq.__is_guarded) return;
+
+  const originalFbq = window.fbq;
+
+  function guardedFbq(...args) {
+    const cmd = args[0];
+    const isSingle = cmd === 'trackSingle' || cmd === 'trackSingleCustom';
+    const eventName = isSingle ? args[2] : args[1];
+
+    if (eventName === 'Purchase') {
+      const now = Date.now();
+      const payload = isSingle ? args[3] : args[2];
+      const currentOrderId = payload?.order_id || payload?.transaction_id || null;
+
+      // Deduplication check: drop duplicate if dispatched within 5000ms window or identical order_id
+      if (
+        (currentOrderId && lastTrackedPurchaseId && currentOrderId === lastTrackedPurchaseId) ||
+        (now - lastTrackedPurchaseTime < 5000)
+      ) {
+        console.warn('[Tracking] 🛡️ Blocked duplicate Meta Pixel Purchase event at transport layer:', {
+          command: cmd,
+          orderId: currentOrderId || lastTrackedPurchaseId,
+          deltaMs: now - lastTrackedPurchaseTime
+        });
+        return; // Suppress duplicate!
+      }
+
+      lastTrackedPurchaseTime = now;
+      if (currentOrderId) lastTrackedPurchaseId = currentOrderId;
+      console.log('[Tracking] ✅ Permitted single Meta Pixel Purchase event:', { command: cmd, orderId: currentOrderId });
+    } else if (eventName === 'Message' || eventName === 'Contact') {
+      const now = Date.now();
+      if (now - lastTrackedMessageTime < 2000) {
+        console.warn(`[Tracking] 🛡️ Blocked duplicate Meta Pixel ${eventName} event (debounced).`);
+        return; // Suppress duplicate!
+      }
+      lastTrackedMessageTime = now;
+      console.log(`[Tracking] ✅ Permitted single Meta Pixel ${eventName} event.`);
+    }
+
+    if (typeof originalFbq === 'function') {
+      return originalFbq.apply(this, args);
+    } else if (originalFbq && typeof originalFbq.callMethod === 'function') {
+      return originalFbq.callMethod.apply(originalFbq, args);
+    }
+  }
+
+  if (originalFbq) {
+    try {
+      Object.keys(originalFbq).forEach((k) => {
+        guardedFbq[k] = originalFbq[k];
+      });
+    } catch (e) {}
+    guardedFbq.callMethod = originalFbq.callMethod || originalFbq;
+    guardedFbq.queue = originalFbq.queue || [];
+    guardedFbq.loaded = originalFbq.loaded;
+    guardedFbq.version = originalFbq.version;
+    guardedFbq.push = originalFbq.push || guardedFbq;
+  } else {
+    guardedFbq.queue = [];
+    guardedFbq.push = guardedFbq;
+    guardedFbq.loaded = true;
+    guardedFbq.version = '2.0';
+  }
+
+  guardedFbq.__is_guarded = true;
+  window.fbq = guardedFbq;
+  window.__fbq_dedup_installed = true;
+}
+
+// Automatically install guard on module load
+if (typeof window !== 'undefined') {
+  ensureFbqDeduplicationGuard();
+}
+
 // 1. INITIALIZE TRACKERS ON PAGE LOAD (Strictly Idempotent)
 export function initTracking(siteSettings) {
   if (typeof window === 'undefined' || !siteSettings) return;
