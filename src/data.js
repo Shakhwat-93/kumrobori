@@ -14,7 +14,8 @@ export const combos = [
     title: 'গ্রামীণ স্বাদের কম্বো',
     price: 799,
     items: ['৫০০ গ্রাম কুমড়ো বড়ি', '৫০০ গ্রাম মাসকলাইয়ের আটা', '৫০০ গ্রাম মাসকলাইয়ের ডাল'],
-    image: '/img/combo.webp',
+    image: '/img/combo-799.jpg',
+    pos: 'center 35%',
   },
   {
     id: 'combo-990',
