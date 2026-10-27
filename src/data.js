@@ -43,6 +43,7 @@ export const combos = [
       '🎁 হোম ডেলিভারি চার্জ সম্পূর্ণ ফ্রি!'
     ],
     image: '/img/khejurer-gur-combo.jpg',
+    pos: 'center 40%',
     featured: true,
   },
 ]

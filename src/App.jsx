@@ -202,6 +202,7 @@ function Combos() {
                 src={c.image}
                 alt={c.title}
                 loading="lazy"
+                style={c.pos ? { objectPosition: c.pos } : undefined}
                 onError={(e) => { e.currentTarget.src = '/img/combo.webp' }}
               />
               <span className="sale-badge">ফ্রি ডেলিভারি</span>
