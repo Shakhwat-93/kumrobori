@@ -5,7 +5,7 @@ import { CmsProvider, useCms } from './context/CmsContext.jsx'
 import AdminApp from './admin/AdminApp.jsx'
 import OrderSuccessPage from './pages/OrderSuccessPage.jsx'
 import CustomerReviews from './components/CustomerReviews.jsx'
-import { fetchClientIp, trackPurchase } from './lib/tracking.js'
+import { fetchClientIp, trackPurchase, trackMessageAction } from './lib/tracking.js'
 
 /* ---------- helpers ---------- */
 const bnDigits = '০১২৩৪৫৬৭৮৯'
@@ -77,6 +77,7 @@ function Header() {
           className="header-fb-btn"
           aria-label="ম্যাংগো গার্ডেন ফেসবুক পেজ"
           title="আমাদের ফেসবুক পেজ"
+          onClick={() => trackMessageAction({ channel: 'facebook', placement: 'header' })}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -709,6 +710,7 @@ function FloatingFacebook() {
         className="floating-fb"
         aria-label="ফেসবুকে যোগাযোগ করুন"
         title="ম্যাংগো গার্ডেন ফেসবুক পেজ"
+        onClick={() => trackMessageAction({ channel: 'facebook', placement: 'floating_widget' })}
       >
         <span className="floating-fb-pulse" />
         <div className="floating-fb-btn">
@@ -752,6 +754,7 @@ function Storefront({ onOpenAdmin, onOrderSuccess }) {
             target="_blank"
             rel="noopener noreferrer"
             className="footer-fb-pill"
+            onClick={() => trackMessageAction({ channel: 'facebook', placement: 'footer' })}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { initTracking } from '../lib/tracking';
 
 const CmsContext = createContext(null);
 
@@ -182,6 +183,13 @@ export function CmsProvider({ children }) {
       };
     }
   }, [fetchData]);
+
+  // Idempotently initialize tracking engines once settings are ready
+  useEffect(() => {
+    if (siteSettings?.pixel_enabled && (siteSettings.fb_pixel_id || siteSettings.tiktok_pixel_id || siteSettings.gtm_id)) {
+      initTracking(siteSettings);
+    }
+  }, [siteSettings]);
 
   // MUTATION: Update Site Settings
   const updateSiteSettings = async (newData) => {

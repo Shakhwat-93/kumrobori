@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { Phone, Check, Package, ArrowLeft, Copy, MessageCircle } from 'lucide-react';
+import { Phone, Check, Package, ArrowLeft, Copy } from 'lucide-react';
 import { useCms } from '../context/CmsContext';
 import { formatOrderCourierText } from '../lib/orderHelper';
 import { trackPurchase } from '../lib/tracking';
@@ -8,8 +8,9 @@ import { trackPurchase } from '../lib/tracking';
 export default function OrderSuccessPage({ order, onReturnHome }) {
   const { siteSettings } = useCms();
   const [copied, setCopied] = useState(false);
+  const trackedRef = useRef(false);
 
-  // Trigger celebration confetti & fire Purchase tracking on mount
+  // Trigger celebration confetti & fire Purchase tracking on mount exactly once
   useEffect(() => {
     try {
       confetti({
@@ -23,8 +24,9 @@ export default function OrderSuccessPage({ order, onReturnHome }) {
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Ensure dataLayer & pixels fire purchase event
-    if (order) {
+    // Ensure dataLayer & pixels fire purchase event exactly once per order
+    if (order && !trackedRef.current) {
+      trackedRef.current = true;
       trackPurchase({ order, siteSettings });
     }
   }, [order, siteSettings]);
