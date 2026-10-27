@@ -78,87 +78,43 @@ export function markOrderTracked(orderId) {
   }
 }
 
-// --- Transport-Level fbq Deduplication Guard ---
-let lastTrackedPurchaseTime = 0;
-let lastTrackedPurchaseId = null;
-let lastTrackedMessageTime = 0;
-
-export function ensureFbqDeduplicationGuard() {
+// --- Standard Meta Pixel Loader Stub ---
+// Ensures official window.fbq queue is always available without breaking fbevents.js
+export function ensureStandardFbqStub() {
   if (typeof window === 'undefined') return;
 
-  if (window.fbq && window.fbq.__is_guarded) return;
-
-  const originalFbq = window.fbq;
-
-  function guardedFbq(...args) {
-    const cmd = args[0];
-    const isSingle = cmd === 'trackSingle' || cmd === 'trackSingleCustom';
-    const eventName = isSingle ? args[2] : args[1];
-
-    if (eventName === 'Purchase') {
-      const now = Date.now();
-      const payload = isSingle ? args[3] : args[2];
-      const currentOrderId = payload?.order_id || payload?.transaction_id || null;
-
-      // Deduplication check: drop duplicate if dispatched within 5000ms window or identical order_id
-      if (
-        (currentOrderId && lastTrackedPurchaseId && currentOrderId === lastTrackedPurchaseId) ||
-        (now - lastTrackedPurchaseTime < 5000)
-      ) {
-        console.warn('[Tracking] 🛡️ Blocked duplicate Meta Pixel Purchase event at transport layer:', {
-          command: cmd,
-          orderId: currentOrderId || lastTrackedPurchaseId,
-          deltaMs: now - lastTrackedPurchaseTime
-        });
-        return; // Suppress duplicate!
-      }
-
-      lastTrackedPurchaseTime = now;
-      if (currentOrderId) lastTrackedPurchaseId = currentOrderId;
-      console.log('[Tracking] ✅ Permitted single Meta Pixel Purchase event:', { command: cmd, orderId: currentOrderId });
-    } else if (eventName === 'Message' || eventName === 'Contact') {
-      const now = Date.now();
-      if (now - lastTrackedMessageTime < 2000) {
-        console.warn(`[Tracking] 🛡️ Blocked duplicate Meta Pixel ${eventName} event (debounced).`);
-        return; // Suppress duplicate!
-      }
-      lastTrackedMessageTime = now;
-      console.log(`[Tracking] ✅ Permitted single Meta Pixel ${eventName} event.`);
-    }
-
-    if (typeof originalFbq === 'function') {
-      return originalFbq.apply(this, args);
-    } else if (originalFbq && typeof originalFbq.callMethod === 'function') {
-      return originalFbq.callMethod.apply(originalFbq, args);
-    }
+  if (!window.fbq) {
+    /* eslint-disable */
+    (function (f, b, e, v, n, t, s) {
+      if (f.fbq) return;
+      n = f.fbq = function () {
+        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+      };
+      if (!f._fbq) f._fbq = n;
+      n.push = n;
+      n.loaded = !0;
+      n.version = '2.0';
+      n.queue = [];
+      t = b.createElement(e);
+      t.async = !0;
+      t.src = v;
+      s = b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t, s);
+    })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    /* eslint-enable */
   }
 
-  if (originalFbq) {
-    try {
-      Object.keys(originalFbq).forEach((k) => {
-        guardedFbq[k] = originalFbq[k];
-      });
-    } catch (e) {}
-    guardedFbq.callMethod = originalFbq.callMethod || originalFbq;
-    guardedFbq.queue = originalFbq.queue || [];
-    guardedFbq.loaded = originalFbq.loaded;
-    guardedFbq.version = originalFbq.version;
-    guardedFbq.push = originalFbq.push || guardedFbq;
-  } else {
-    guardedFbq.queue = [];
-    guardedFbq.push = guardedFbq;
-    guardedFbq.loaded = true;
-    guardedFbq.version = '2.0';
-  }
-
-  guardedFbq.__is_guarded = true;
-  window.fbq = guardedFbq;
-  window.__fbq_dedup_installed = true;
+  // Disable automatic button click & heuristic DOM scraping to eliminate duplicate phantom events
+  try {
+    if (window.fbq) {
+      window.fbq('set', 'autoConfig', false, '1033673513094948');
+    }
+  } catch (e) {}
 }
 
-// Automatically install guard on module load
+// Automatically ensure standard stub on client
 if (typeof window !== 'undefined') {
-  ensureFbqDeduplicationGuard();
+  ensureStandardFbqStub();
 }
 
 // 1. INITIALIZE TRACKERS ON PAGE LOAD (Strictly Idempotent)
@@ -599,27 +555,44 @@ export async function trackPurchase({ order, siteSettings }) {
     }
   }
 
+  // Check if GTM is loaded & active on page
+  const isGtmActive = typeof window !== 'undefined' && Boolean(
+    (window.google_tag_manager && (window.google_tag_manager['GTM-N9Q2Z7P4'] || Object.keys(window.google_tag_manager).length > 0)) ||
+    window.__gtm_loaded
+  );
+
+  const fbPayload = {
+    content_name: pkgName,
+    content_type: 'product',
+    content_ids: [prodId],
+    value: totalVal,
+    currency: 'BDT',
+    num_items: qty,
+    order_id: eventId
+  };
+
   // --- 1. Browser Meta Pixel ---
-  if (window.fbq) {
+  // When GTM is active, GTM container (Tag 30) fires the official Meta Pixel Purchase event for 1033673513094948
+  // upon receiving the dataLayer 'purchase' event below.
+  // We ONLY call direct window.fbq('track', 'Purchase') if GTM is NOT active (e.g. adblocker, fallback mode),
+  // OR if a distinct custom fb_pixel_id is configured in siteSettings.
+  const customPixelId = siteSettings?.fb_pixel_id?.trim();
+  if (customPixelId && customPixelId !== '1033673513094948' && window.fbq) {
     try {
-      window.fbq(
-        'track',
-        'Purchase',
-        {
-          content_name: pkgName,
-          content_type: 'product',
-          content_ids: [prodId],
-          value: totalVal,
-          currency: 'BDT',
-          num_items: qty,
-          order_id: eventId
-        },
-        { eventID: eventId } // Shared eventID for browser & CAPI deduplication!
-      );
-      console.log(`[Tracking] Meta Browser Pixel Purchase tracked successfully (${eventId}).`);
+      window.fbq('trackSingle', customPixelId, 'Purchase', fbPayload, { eventID: eventId });
+      console.log(`[Tracking] Meta Custom Pixel Purchase tracked (${customPixelId}):`, eventId);
     } catch (err) {
-      console.warn('[Tracking] Meta Browser Pixel Purchase track error:', err);
+      console.warn('[Tracking] Meta Custom Pixel Purchase track error:', err);
     }
+  } else if (!isGtmActive && window.fbq) {
+    try {
+      window.fbq('track', 'Purchase', fbPayload, { eventID: eventId });
+      console.log(`[Tracking] Meta Direct Browser Pixel Purchase tracked successfully (${eventId}).`);
+    } catch (err) {
+      console.warn('[Tracking] Meta Direct Browser Pixel Purchase track error:', err);
+    }
+  } else {
+    console.log(`[Tracking] GTM is active: Purchase event will be dispatched cleanly via dataLayer Tag 30 (${eventId}).`);
   }
 
   // --- 2. TikTok Pixel (Advanced Matching + PlaceAnOrder + CompletePayment) ---
@@ -790,12 +763,11 @@ export async function trackMessageAction({
     currency: 'BDT'
   };
 
-  // 1. Browser Meta Pixel: Track custom 'Message' event and standard 'Contact'
+  // 1. Browser Meta Pixel: Track custom 'Message' event exactly once
   if (window.fbq) {
     try {
       window.fbq('trackCustom', 'Message', eventPayload, { eventID: eventId });
-      window.fbq('track', 'Contact', eventPayload, { eventID: eventId });
-      console.log(`[Tracking] Meta Pixel Message & Contact event fired (${eventId}).`);
+      console.log(`[Tracking] Meta Pixel Message event fired cleanly (${eventId}).`);
     } catch (e) {
       console.warn('[Tracking] Meta Pixel Message track notice:', e);
     }
@@ -824,7 +796,7 @@ export async function trackMessageAction({
     } catch (e) {}
   }
 
-  // 4. Conversions API (CAPI) for Message / Contact
+  // 4. Conversions API (CAPI) for Message
   const fbPixelId = siteSettings?.fb_pixel_id?.trim();
   const fbAccessToken = siteSettings?.fb_capi_access_token?.trim();
   const testEventCode = siteSettings?.fb_test_event_code?.trim();
@@ -834,7 +806,7 @@ export async function trackMessageAction({
       const capiPayload = {
         data: [
           {
-            event_name: 'Contact',
+            event_name: 'Message',
             event_time: Math.floor(now / 1000),
             event_id: eventId,
             event_source_url: window.location.href,

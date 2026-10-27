@@ -3,61 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- Meta Pixel Exactly-Once Deduplication Guard -->
-    <script>
-      (function() {
-        var lastPurchaseTime = 0;
-        var lastPurchaseId = null;
-        var lastMsgTime = 0;
-        function installGuard() {
-          var origFbq = window.fbq;
-          if (origFbq && origFbq.__is_guarded) return;
-          function guardedFbq() {
-            var args = Array.prototype.slice.call(arguments);
-            var cmd = args[0];
-            var isSingle = cmd === 'trackSingle' || cmd === 'trackSingleCustom';
-            var eventName = isSingle ? args[2] : args[1];
-            if (eventName === 'Purchase') {
-              var now = Date.now();
-              var payload = isSingle ? args[3] : args[2];
-              var currentOrderId = payload && (payload.order_id || payload.transaction_id);
-              if ((currentOrderId && lastPurchaseId && currentOrderId === lastPurchaseId) || (now - lastPurchaseTime < 5000)) {
-                console.warn('[Tracking] 🛡️ Suppressed duplicate Meta Pixel Purchase event');
-                return;
-              }
-              lastPurchaseTime = now;
-              if (currentOrderId) lastPurchaseId = currentOrderId;
-            } else if (eventName === 'Message' || eventName === 'Contact') {
-              var now = Date.now();
-              if (now - lastMsgTime < 2000) {
-                return;
-              }
-              lastMsgTime = now;
-            }
-            if (typeof origFbq === 'function') {
-              return origFbq.apply(this, args);
-            }
-          }
-          if (origFbq) {
-            for (var k in origFbq) { try { guardedFbq[k] = origFbq[k]; } catch (e) {} }
-            guardedFbq.callMethod = origFbq.callMethod || origFbq;
-            guardedFbq.queue = origFbq.queue || [];
-            guardedFbq.loaded = origFbq.loaded;
-            guardedFbq.version = origFbq.version;
-            guardedFbq.push = origFbq.push || guardedFbq;
-          } else {
-            guardedFbq.queue = [];
-            guardedFbq.push = guardedFbq;
-            guardedFbq.loaded = true;
-            guardedFbq.version = '2.0';
-          }
-          guardedFbq.__is_guarded = true;
-          window.fbq = guardedFbq;
-        }
-        installGuard();
-        window.__installFbqGuard = installGuard;
-      })();
-    </script>
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
