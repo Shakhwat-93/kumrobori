@@ -3,9 +3,7 @@ export const DELIVERY_CHARGE = 100
 const bn = (n) => String(n).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[d])
 
 export const boriPrices = [
-  { id: 'bori-500', weight: '৫০০ গ্রাম', price: 399, tag: 'ট্রায়াল প্যাক' },
-  { id: 'bori-1', weight: '১ কেজি', price: 650, tag: 'সবচেয়ে জনপ্রিয়', featured: true },
-  { id: 'bori-2', weight: '২ কেজি', price: 1299, tag: 'ফ্যামিলি প্যাক' },
+  { id: 'bori-1', weight: '১ কেজি', price: 650, tag: 'সবচেয়ে জনপ্রিয়', featured: true, min: 1, max: 2 },
 ]
 
 export const combos = [
@@ -30,35 +28,34 @@ export const combos = [
     image: '/img/combo.webp',
     featured: true,
   },
-  {
-    id: 'combo-gur',
-    title: 'স্পেশাল শীতকালীন অফার — ৫ ধরনের খেজুরের গুড়',
-    badge: '🔥 শীতকালীন অফার',
-    price: 990,
-    items: [
-      '৫০০ গ্রাম গোল পাটালি গুড়',
-      '৫০০ গ্রাম ফয়েল পাটালি গুড়',
-      '৫০০ গ্রাম খাঁটি ঝোলা গুড়',
-      '৫০০ গ্রাম দানাদার গুড়',
-      '৫০০ গ্রাম চকলেট গুড়',
-      '🎁 হোম ডেলিভারি চার্জ সম্পূর্ণ ফ্রি!'
-    ],
-    image: '/img/khejurer-gur-combo.jpg',
-    pos: 'center 40%',
-    featured: true,
-  },
 ]
 
 export const products = [
-  { id: 'p-bori', name: 'কুমড়ো বড়ি', price: 650, unit: 'কেজি', min: 1, image: '/img/kumro-bori.webp' },
-  { id: 'p-dal', name: 'মাসকলাইয়ের ডাল', price: 300, unit: 'কেজি', min: 2, image: '/img/maskalai-dal.webp', pos: 'center bottom' },
-  { id: 'p-ata', name: 'মাসকলাইয়ের আটা', price: 250, unit: 'কেজি', min: 2, image: '/img/maskalai-ata.webp' },
-  { id: 'p-gom', name: 'লাল গমের আটা', price: 130, unit: 'কেজি', min: 3, image: '/img/lal-gom-ata.webp' },
+  { id: 'bori-1', name: 'কুমড়ো বড়ি (১ কেজি)', price: 650, unit: 'কেজি', min: 1, max: 2, image: '/img/kumro-bori.webp' },
 ]
 
-// অর্ডার ফর্মে যেসব অপশন দেখাবে
+// অর্ডার ফর্মে ঠিক ৩টি নির্ধারিত পণ্য (যেকোনো ১টি নির্বাচনযোগ্য)
 export const orderOptions = [
-  ...combos.map((c) => ({ id: c.id, label: `${c.title}`, sub: 'ফ্রি ডেলিভারি', price: c.price, freeDelivery: true, min: 1, unit: 'প্যাকেজ' })),
-  ...boriPrices.map((b) => ({ id: b.id, label: `কুমড়ো বড়ি — ${b.weight}`, sub: '+ ডেলিভারি ১০০৳', price: b.price, freeDelivery: false, min: 1, unit: 'প্যাক' })),
-  ...products.slice(1).map((p) => ({ id: p.id, label: p.name, sub: `সর্বনিম্ন ${bn(p.min)} ${p.unit}`, price: p.price, freeDelivery: false, min: p.min, unit: p.unit })),
+  ...combos.map((c) => ({
+    id: c.id,
+    label: `${c.title}`,
+    sub: 'ফ্রি ডেলিভারি',
+    price: c.price,
+    freeDelivery: true,
+    min: 1,
+    max: 1,
+    unit: 'প্যাকেজ',
+    isCombo: true
+  })),
+  ...boriPrices.map((b) => ({
+    id: b.id,
+    label: `কুমড়ো বড়ি — ${b.weight}`,
+    sub: '+ ডেলিভারি ১০০৳',
+    price: b.price,
+    freeDelivery: false,
+    min: 1,
+    max: 2,
+    unit: 'কেজি',
+    isCombo: false
+  })),
 ]

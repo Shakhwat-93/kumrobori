@@ -162,22 +162,22 @@ function BoriPricing() {
   return (
     <section className="section" id="pricing">
       <div className="sec-head reveal">
-        <span className="eyebrow">💰 দাম</span>
-        <h2>কুমড়ো বড়ির প্যাক বেছে নিন</h2>
-        <p>হোম ডেলিভারি চার্জ সারা বাংলাদেশে মাত্র <b>৳{toBn(DELIVERY_CHARGE)}</b></p>
+        <span className="eyebrow">💰 দাম ও প্যাকেজ</span>
+        <h2>খাঁটি কুমড়ো বড়ি (১ কেজি)</h2>
+        <p>সারা বাংলাদেশে হোম ডেলিভারি মাত্র <b>৳{toBn(DELIVERY_CHARGE)}</b> · সর্বোচ্চ ২ কেজি পর্যন্ত অর্ডার করা যাবে</p>
       </div>
-      <div className="price-list">
+      <div className="price-list single-price-list">
         {boriPrices.map((b, i) => (
           <div className={`price-card reveal ${b.featured ? 'featured' : ''}`} style={{ transitionDelay: `${i * 90}ms` }} key={b.id}>
             {b.featured && <span className="ribbon">⭐ {b.tag}</span>}
             <div className="pc-left">
               <span className="pc-weight">{b.weight}</span>
-              {!b.featured && <span className="pc-tag">{b.tag}</span>}
+              <span className="pc-tag">হোম ডেলিভারি সারা দেশে · সর্বোচ্চ ২ কেজি</span>
             </div>
             <div className="pc-right">
-              <span className="pc-price">৳{taka(b.price)}</span>
-              <button className={`btn btn-sm ${b.featured ? '' : 'btn-soft'}`} onClick={() => scrollToOrder(b.id)}>
-                অর্ডার
+              <span className="pc-price">৳{taka(b.price)}<small style={{ fontSize: '13px', color: 'var(--ink-light)', fontWeight: 500 }}> / কেজি</small></span>
+              <button className="btn btn-sm" onClick={() => scrollToOrder(b.id)}>
+                অর্ডার করুন
               </button>
             </div>
           </div>
@@ -236,32 +236,6 @@ function Combos() {
   )
 }
 
-function Products() {
-  return (
-    <section className="section" id="products">
-      <div className="sec-head reveal">
-        <span className="eyebrow">🌿 মূল্য তালিকা</span>
-        <h2>আমাদের সব পণ্য</h2>
-      </div>
-      <div className="prod-grid">
-        {products.map((p, i) => (
-          <div className="prod reveal" style={{ transitionDelay: `${(i % 2) * 90}ms` }} key={p.id}>
-            <div className="prod-img">
-              <img src={p.image} alt={p.name} loading="lazy" style={p.pos ? { objectPosition: p.pos } : undefined} />
-            </div>
-            <h4>{p.name}</h4>
-            <div className="prod-price">
-              ৳{taka(p.price)}
-              <small>/{p.unit}</small>
-            </div>
-            {p.min > 1 ? <span className="min">সর্বনিম্ন {toBn(p.min)} {p.unit}</span> : <span className="min ok">যেকোনো পরিমাণ</span>}
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
 function Story() {
   return (
     <section className="section">
@@ -279,7 +253,7 @@ function Story() {
 
 function OrderForm({ onOrderSuccess }) {
   const { refreshAll } = useCms() || {}
-  // Selected items: mapping of { [id]: quantity }
+  // Selected single item: mapping of { [id]: quantity }
   const [selected, setSelected] = useState({ 'combo-799': 1 })
   const [form, setForm] = useState({ name: '', phone: '', address: '' })
   const [err, setErr] = useState({})
@@ -291,87 +265,39 @@ function OrderForm({ onOrderSuccess }) {
     const h = (e) => {
       const o = orderOptions.find((x) => x.id === e.detail)
       if (o) {
-        setSelected({ [o.id]: o.min })
+        setSelected({ [o.id]: 1 })
       }
     }
     window.addEventListener('pick-option', h)
     return () => window.removeEventListener('pick-option', h)
   }, [])
 
-  const toggleOption = (o) => {
-    const isSelected = Boolean(selected[o.id])
-    const currentIds = Object.keys(selected)
-    const isNewCombo = o.id.startsWith('combo-')
-
-    if (isSelected) {
-      if (currentIds.length > 1) {
-        const next = { ...selected }
-        delete next[o.id]
-        setSelected(next)
-      }
-      return
-    }
-
-    if (isNewCombo) {
-      // কম্বো ২টা একসাথে সিলেক্ট করা যাবে না: বিদ্যমান কম্বো থাকলে তা নতুন কম্বো দ্বারা পরিবর্তিত হবে
-      // এবং নিচে পূর্বে সিলেক্টেড সর্বোচ্চ ১টি সাধারণ পণ্য সাথে রাখা যাবে
-      const nonComboIds = currentIds.filter((id) => !id.startsWith('combo-'))
-      const next = { [o.id]: 1 }
-      if (nonComboIds.length > 0) {
-        const regId = nonComboIds[0]
-        next[regId] = selected[regId]
-      }
-      setSelected(next)
-    } else {
-      // সাধারণ পণ্য ক্লিক করা হয়েছে
-      const comboId = currentIds.find((id) => id.startsWith('combo-'))
-
-      if (comboId) {
-        // ইতোমধ্যে ১টি কম্বো সিলেক্ট করা থাকলে তার সাথে সর্বোচ্চ ১টি সাধারণ পণ্য সিলেক্ট হতে পারবে
-        setSelected({
-          [comboId]: 1,
-          [o.id]: o.min
-        })
-      } else {
-        // কোনো কম্বো নেই — সাধারণ পণ্যের ক্ষেত্রে সর্বোচ্চ ২টি সিলেক্ট রাখা যাবে
-        if (currentIds.length < 2) {
-          setSelected({
-            ...selected,
-            [o.id]: o.min
-          })
-        } else {
-          // পূর্বে ২টা সিলেক্ট থাকলে ১মটি রেখে ২য়টি পরিবর্তন হবে
-          const [firstId] = currentIds
-          setSelected({
-            [firstId]: selected[firstId],
-            [o.id]: o.min
-          })
-        }
-      }
-    }
+  const selectOption = (o) => {
+    // ৩টির মধ্যে যেকোনো ১টি একক নির্বাচন (রেডিও স্টাইল)
+    setSelected({ [o.id]: 1 })
   }
 
   const updateQty = (id, newQty) => {
-    // কম্বো অফারে পরিমাণ পরিবর্তন করা যাবে না (১ প্যাকেজ নির্দিষ্ট)
+    // কম্বো অফারে পরিমাণ নির্দিষ্ট (১ প্যাকেজ)
     if (id.startsWith('combo-')) return
-    setSelected((prev) => ({
-      ...prev,
-      [id]: Math.max(1, newQty)
-    }))
+    // কুমড়ো বড়ি সর্বোচ্চ ২ কেজি পর্যন্ত কেনা যাবে
+    const maxLimit = 2
+    const nextQty = Math.max(1, Math.min(maxLimit, newQty))
+    setSelected({ [id]: nextQty })
   }
 
-  const selectedList = Object.entries(selected).map(([id, qty]) => {
-    const opt = orderOptions.find((x) => x.id === id) || orderOptions[0]
-    return {
-      ...opt,
-      qty
-    }
-  })
+  const selectedEntry = Object.entries(selected)[0] || ['combo-799', 1]
+  const selectedId = selectedEntry[0]
+  const selectedQty = selectedEntry[1]
+  const opt = orderOptions.find((x) => x.id === selectedId) || orderOptions[0]
+  const selectedOption = {
+    ...opt,
+    qty: selectedQty
+  }
 
-  // Has any combo offer been selected?
-  const hasCombo = selectedList.some((item) => item.id.startsWith('combo-'))
-  const subtotal = selectedList.reduce((sum, item) => sum + item.price * item.qty, 0)
-  const delivery = hasCombo ? 0 : DELIVERY_CHARGE
+  const isCombo = selectedOption.id.startsWith('combo-')
+  const subtotal = selectedOption.price * selectedOption.qty
+  const delivery = isCombo ? 0 : DELIVERY_CHARGE
   const total = subtotal + delivery
 
   const submit = async (e) => {
@@ -388,32 +314,28 @@ function OrderForm({ onOrderSuccess }) {
     const orderId = 'KB-' + Date.now().toString(36).toUpperCase()
     const clientIp = await fetchClientIp()
 
-    const itemsPayload = selectedList.map((item) => ({
-      id: item.id,
-      name: item.label,
-      price: item.price,
-      quantity: item.qty,
-      unit: item.unit,
-      total: item.price * item.qty
-    }))
+    const formattedProductName = `${selectedOption.label} (${toBn(selectedOption.qty)} ${selectedOption.unit})`
 
-    const formattedProductName = selectedList.length === 1
-      ? `${selectedList[0].label} (${toBn(selectedList[0].qty)} ${selectedList[0].unit})`
-      : selectedList.map((item) => `${item.label} (${toBn(item.qty)} ${item.unit})`).join(' + ')
-
-    const totalQty = selectedList.reduce((acc, item) => acc + item.qty, 0)
+    const itemsPayload = [{
+      id: selectedOption.id,
+      name: selectedOption.label,
+      price: selectedOption.price,
+      quantity: selectedOption.qty,
+      unit: selectedOption.unit,
+      total: selectedOption.price * selectedOption.qty
+    }]
 
     const orderPayload = {
       order_id: orderId,
       name: form.name.trim(),
       phone: form.phone.trim(),
       address: form.address.trim(),
-      package_id: selectedList.map((i) => i.id).join(', '),
+      package_id: selectedOption.id,
       product_name: formattedProductName,
       package_name: formattedProductName,
-      quantity: totalQty,
-      unit: selectedList.length === 1 ? selectedList[0].unit : 'আইটেম',
-      unit_price: selectedList[0].price,
+      quantity: selectedOption.qty,
+      unit: selectedOption.unit,
+      unit_price: selectedOption.price,
       subtotal: subtotal,
       delivery_charge: delivery,
       delivery_fee: delivery,
@@ -456,38 +378,29 @@ function OrderForm({ onOrderSuccess }) {
       <form className="order-card reveal" onSubmit={submit} noValidate>
         <div className="opt-header-row">
           <label className="lbl" style={{ margin: 0 }}>প্যাকেজ / পণ্য বেছে নিন</label>
-          <span className="opt-limit-pill">সর্বোচ্চ ২টি আইটেম</span>
+          <span className="opt-limit-pill">যেকোনো ১টি নির্বাচন করুন</span>
         </div>
 
         <div className="opt-helper-banner">
-          <span>💡 ১টি কম্বো + ১টি সাধারণ পণ্য অথবা যেকোনো ২টি পণ্য বেছে নিতে পারেন।</span>
-          {hasCombo ? (
-            <span className="combo-free-pill">🎉 কম্বো সিলেক্ট করায় ডেলিভারি সম্পূর্ণ ফ্রি!</span>
+          <span>💡 ৩টি অফারের মধ্যে আপনার পছন্দের যেকোনো ১টি বেছে নিন।</span>
+          {isCombo ? (
+            <span className="combo-free-pill">🎉 কম্বো অফারে সারা দেশে হোম ডেলিভারি সম্পূর্ণ ফ্রি!</span>
           ) : (
-            <span className="combo-hint-pill">🚚 যেকোনো কম্বো নিলে পুরো অর্ডারে ফ্রি ডেলিভারি পাবেন!</span>
+            <span className="combo-hint-pill">🚚 কুমড়ো বড়িতে ডেলিভারি চার্জ মাত্র ৳{toBn(DELIVERY_CHARGE)} (সর্বোচ্চ ২ কেজি)</span>
           )}
         </div>
 
         <div className="opts">
           {orderOptions.map((o) => {
-            const isSelected = Boolean(selected[o.id])
-            const isCombo = o.id.startsWith('combo-')
-            let deliverySub = o.sub
-            let isFree = false
-            if (isCombo) {
-              deliverySub = 'ফ্রি ডেলিভারি'
-              isFree = true
-            } else if (hasCombo) {
-              deliverySub = '🎉 ফ্রি ডেলিভারি (কম্বোর সাথে)'
-              isFree = true
-            }
+            const isSelected = selectedOption.id === o.id
+            const isOptCombo = o.id.startsWith('combo-')
 
             return (
               <button
                 type="button"
                 key={o.id}
                 className={`opt ${isSelected ? 'active' : ''}`}
-                onClick={() => toggleOption(o)}
+                onClick={() => selectOption(o)}
                 aria-pressed={isSelected}
               >
                 <span className={`chk ${isSelected ? 'checked' : ''}`}>
@@ -495,7 +408,9 @@ function OrderForm({ onOrderSuccess }) {
                 </span>
                 <span className="opt-text">
                   <b>{o.label}</b>
-                  <small className={isFree ? 'free' : ''}>{deliverySub}</small>
+                  <small className={isOptCombo ? 'free' : ''}>
+                    {isOptCombo ? 'ফ্রি ডেলিভারি' : `+ ডেলিভারি ৳${toBn(DELIVERY_CHARGE)}`}
+                  </small>
                 </span>
                 <span className="opt-price">
                   ৳{taka(o.price)}
@@ -508,85 +423,41 @@ function OrderForm({ onOrderSuccess }) {
 
         <div className="qty-section">
           <label className="lbl">
-            {selectedList.length > 1
-              ? `নির্বাচিত পণ্যের পরিমাণ (${toBn(selectedList.length)}টি পণ্য)`
-              : selectedList[0]?.id.startsWith('combo-')
-                ? 'পরিমাণ (প্যাকেজ)'
-                : `পরিমাণ (${selectedList[0]?.unit || 'কেজি'})`}
+            {isCombo ? 'পরিমাণ (প্যাকেজ)' : 'পরিমাণ (কেজি — সর্বোচ্চ ২ কেজি পর্যন্ত)'}
           </label>
 
-          {selectedList.length === 1 ? (
-            selectedList[0].id.startsWith('combo-') ? (
-              <div className="combo-fixed-single">
-                <div className="combo-fixed-pill">
-                  <span className="combo-fixed-icon">🎁</span>
-                  <span className="combo-fixed-text">১টি পূর্ণাঙ্গ কম্বো প্যাকেজ</span>
-                </div>
-                <span className="combo-fixed-badge">অফার প্যাক (নির্দিষ্ট)</span>
+          {isCombo ? (
+            <div className="combo-fixed-single">
+              <div className="combo-fixed-pill">
+                <span className="combo-fixed-icon">🎁</span>
+                <span className="combo-fixed-text">১টি পূর্ণাঙ্গ কম্বো প্যাকেজ</span>
               </div>
-            ) : (
+              <span className="combo-fixed-badge">অফার প্যাক (নির্দিষ্ট)</span>
+            </div>
+          ) : (
+            <div className="stepper-wrap">
               <div className="stepper">
                 <button
                   type="button"
-                  onClick={() => updateQty(selectedList[0].id, Math.max(selectedList[0].min, selectedList[0].qty - 1))}
-                  disabled={selectedList[0].qty <= selectedList[0].min}
+                  onClick={() => updateQty(selectedOption.id, selectedOption.qty - 1)}
+                  disabled={selectedOption.qty <= 1}
                   aria-label="কমান"
                 >
                   −
                 </button>
-                <span key={selectedList[0].qty} className="pop">{toBn(selectedList[0].qty)}</span>
+                <span key={selectedOption.qty} className="pop">{toBn(selectedOption.qty)} কেজি</span>
                 <button
                   type="button"
-                  onClick={() => updateQty(selectedList[0].id, selectedList[0].qty + 1)}
+                  onClick={() => updateQty(selectedOption.id, selectedOption.qty + 1)}
+                  disabled={selectedOption.qty >= 2}
                   aria-label="বাড়ান"
                 >
                   +
                 </button>
               </div>
-            )
-          ) : (
-            <div className="multi-steppers">
-              {selectedList.map((item) => {
-                const isCombo = item.id.startsWith('combo-')
-                return (
-                  <div key={item.id} className="multi-stepper-row">
-                    <div className="multi-stepper-info">
-                      <b>{item.label}</b>
-                      <small>
-                        {isCombo ? (
-                          <>৳{taka(item.price)} × ১ প্যাকেজ <span className="free-tag-inline">(ফ্রি ডেলিভারি)</span></>
-                        ) : (
-                          <>৳{taka(item.price)} × {toBn(item.qty)} {item.unit} = ৳{taka(item.price * item.qty)}</>
-                        )}
-                      </small>
-                    </div>
-                    {isCombo ? (
-                      <div className="combo-fixed-pill-sm">
-                        <span>📦 ১ প্যাকেজ</span>
-                      </div>
-                    ) : (
-                      <div className="stepper stepper-sm">
-                        <button
-                          type="button"
-                          onClick={() => updateQty(item.id, Math.max(item.min, item.qty - 1))}
-                          disabled={item.qty <= item.min}
-                          aria-label="কমান"
-                        >
-                          −
-                        </button>
-                        <span className="pop">{toBn(item.qty)} {item.unit}</span>
-                        <button
-                          type="button"
-                          onClick={() => updateQty(item.id, item.qty + 1)}
-                          aria-label="বাড়ান"
-                        >
-                          +
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+              <span className="qty-max-hint">
+                {selectedOption.qty >= 2 ? '⚠️ সর্বোচ্চ ২ কেজি নির্বাচন করা হয়েছে' : '💡 সর্বোচ্চ ২ কেজি পর্যন্ত নিতে পারবেন'}
+              </span>
             </div>
           )}
         </div>
@@ -608,16 +479,14 @@ function OrderForm({ onOrderSuccess }) {
         </div>
 
         <div className="summary">
-          {selectedList.map((item) => (
-            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#4b5563' }}>
-              <span>{item.label} ({toBn(item.qty)} {item.unit})</span>
-              <span>৳{taka(item.price * item.qty)}</span>
-            </div>
-          ))}
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#4b5563' }}>
+            <span>{selectedOption.label} ({toBn(selectedOption.qty)} {selectedOption.unit})</span>
+            <span>৳{taka(selectedOption.price * selectedOption.qty)}</span>
+          </div>
           <div>
             <span>ডেলিভারি চার্জ</span>
             {delivery === 0 ? (
-              <span className="free">ফ্রি 🎉 {hasCombo ? '(কম্বো অফার)' : ''}</span>
+              <span className="free">ফ্রি 🎉 (কম্বো অফার)</span>
             ) : (
               <span>৳{taka(delivery)}</span>
             )}
@@ -652,8 +521,8 @@ function FAQ() {
   const qs = [
     ['ডেলিভারি কত দিনে পাব?', 'অর্ডার কনফার্ম হওয়ার পর কুরিয়ারে পাঠানো হয়। সময় এলাকাভেদে কিছুটা ভিন্ন হতে পারে।'],
     ['টাকা কীভাবে দেব?', 'ক্যাশ অন ডেলিভারি, পণ্য হাতে পেয়ে ডেলিভারি ম্যানকে টাকা দেবেন।'],
-    ['কম্বোতে ডেলিভারি চার্জ লাগবে?', 'না, দুই কম্বো অফারেই সারা বাংলাদেশে হোম ডেলিভারি সম্পূর্ণ ফ্রি।'],
-    ['ডাল ও আটার সর্বনিম্ন পরিমাণ কত?', 'মাসকলাইয়ের ডাল ও আটা সর্বনিম্ন ২ কেজি, লাল গমের আটা সর্বনিম্ন ৩ কেজি।'],
+    ['কম্বোতে ডেলিভারি চার্জ লাগবে?', 'না, দুটি কম্বো অফারেই সারা বাংলাদেশে হোম ডেলিভারি সম্পূর্ণ ফ্রি।'],
+    ['কুমড়ো বড়ি সর্বোচ্চ কত কেজি নিতে পারব?', 'কুমড়ো বড়ি সর্বোচ্চ ২ কেজি পর্যন্ত নেওয়া যাবে। আর কম্বোতে ১টি পূর্ণাঙ্গ প্যাকেজ থাকবে।'],
   ]
   const [open, setOpen] = useState(0)
   return (
@@ -736,7 +605,6 @@ function Storefront({ onOpenAdmin, onOrderSuccess }) {
         <Features />
         <BoriPricing />
         <Combos />
-        <Products />
         <Story />
         <CustomerReviews />
         <OrderForm onOrderSuccess={onOrderSuccess} />
